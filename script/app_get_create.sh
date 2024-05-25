@@ -26,3 +26,5 @@ send "1\r"
 expect eof
 exit
 EOF
+echo 'include: package:flutter_lints/flutter.yaml' > "$app_name"/analysis_options.yaml
+cat "$ROOT"/analysis_options.yaml >> "$app_name"/analysis_options.yaml

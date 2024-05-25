@@ -8,3 +8,5 @@ if [ ! -d "$apps_dir" ]; then
 fi
 cd "$apps_dir"
 flutter create --template=app "$app_name"
+echo 'include: package:flutter_lints/flutter.yaml' > "$app_name"/analysis_options.yaml
+cat "$ROOT"/analysis_options.yaml >> "$app_name"/analysis_options.yaml

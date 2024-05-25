@@ -8,3 +8,4 @@ if [ ! -d "$packages_dir" ]; then
 fi
 cd "$packages_dir"
 dart create --template=package "$package_name"
+cat "$ROOT"/analysis_options.yaml >> "$package_name"/analysis_options.yaml
