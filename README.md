@@ -1,0 +1,2 @@
+# flutter_melos_template
+melos管理的flutter多模块项目模板，
