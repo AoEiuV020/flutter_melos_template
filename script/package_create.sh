@@ -8,4 +8,5 @@ if [ ! -d "$packages_dir" ]; then
 fi
 cd "$packages_dir"
 dart create --template=package "$package_name"
+echo 'include: package:lints/recommended.yaml' > "$package_name"/analysis_options.yaml
 cat "$ROOT"/analysis_options.yaml >> "$package_name"/analysis_options.yaml
