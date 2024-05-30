@@ -1,9 +1,11 @@
 name: new_project
-repository: https://github.com/AoEiuV020/new_project
 
 packages:
+  - .
+  - example
   - apps/*
   - packages/*
+  - packages/*/example
 
 scripts:
   outdated:
@@ -14,10 +16,6 @@ scripts:
     exec: dart run build_runner build --delete-conflicting-outputs
     packageFilters:
       dependsOn: build_runner
-  doc:
-    exec: dart doc .
-    packageFilters:
-      ignore: '*example*'
   analyze:
     exec: dart analyze .
   fix:
