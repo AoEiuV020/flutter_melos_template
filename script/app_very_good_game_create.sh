@@ -7,7 +7,7 @@ if [ -z "$name" ] || [ "$name" = "." ]; then
     cd "$ROOT"
     rm -f pubspec.yaml README.md
     mv .gitignore .gitignore.bak
-    very_good create flutter_app --org-name "$organization" "$project_name"
+    very_good create flame_game --org-name "$organization" "$project_name"
     for item in "$project_name"/* "$project_name"/.*; do
         # 排除 . 和 ..
         if [[ "$(basename "$item")" != "." && "$(basename "$item")" != ".." ]]; then
@@ -32,7 +32,7 @@ else
         mkdir -p "$apps_dir"
     fi
     cd "$apps_dir"
-    very_good create flutter_app --org-name "$organization" "$name"
+    very_good create flame_game --org-name "$organization" "$name"
     cd "$name"
 fi
 # sed -i '' '2,$d' analysis_options.yaml
