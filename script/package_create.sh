@@ -36,5 +36,8 @@ if [ "$exec" = "flutter" ]; then
 else
     echo 'include: package:lints/recommended.yaml' >analysis_options.yaml
 fi
+if [ -f "$ROOT/LICENSE" ]; then
+    cp -f "$ROOT/LICENSE" .
+fi
 cat "$script_dir"/analyzer_custom.yaml >>analysis_options.yaml
 "$script_dir"/prepare.sh
