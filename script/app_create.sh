@@ -7,7 +7,7 @@ if [ -z "$name" ] || [ "$name" = "." ]; then
     cd "$ROOT"
     rm -f pubspec.yaml README.md
     mv .gitignore .gitignore.bak
-    flutter create --org "$organization" --template=app .
+    flutter create --org "$organization" --project-name "$app_name" --template=app .
     dart pub add dev:melos
     cat .gitignore.bak >>.gitignore
     rm -f .gitignore.bak

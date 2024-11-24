@@ -10,7 +10,7 @@ if [ -z "$name" ] || [ "$name" = "." ]; then
     rm -f pubspec.yaml README.md
     mv .gitignore .gitignore.bak
     if [ "$exec" = "flutter" ]; then
-        flutter create --template=package .
+        flutter create --project-name "$project_name" --template=package .
     else
         dart create --template=package --force .
     fi
