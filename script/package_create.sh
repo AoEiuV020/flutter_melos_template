@@ -30,14 +30,14 @@ else
         dart create --template=package "$name"
     fi
     cd "$name"
+    if [ -f "$ROOT/LICENSE" ]; then
+        cp -f "$ROOT/LICENSE" .
+    fi
 fi
 if [ "$exec" = "flutter" ]; then
     echo 'include: package:flutter_lints/flutter.yaml' >analysis_options.yaml
 else
     echo 'include: package:lints/recommended.yaml' >analysis_options.yaml
-fi
-if [ -f "$ROOT/LICENSE" ]; then
-    cp -f "$ROOT/LICENSE" .
 fi
 cat "$script_dir"/analyzer_custom.yaml >>analysis_options.yaml
 "$script_dir"/prepare.sh
