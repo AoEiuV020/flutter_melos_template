@@ -8,12 +8,6 @@ packages:
   - packages/*/example
 
 scripts:
-  worker2js: melos worker2jsImageMerge
-  worker2jsImageMerge:
-    exec: cd web && dart compile js imageMergeTransform.dart -o imageMergeTransform.js -O4
-    packageFilters:
-      scope: 'example'
-
   outdated:
     exec: dart pub outdated
   upgrade:
@@ -26,8 +20,6 @@ scripts:
     exec: dart analyze .
   fix:
     exec: dart fix --apply
-  format:
-    exec: dart format .
   sort:
     exec: dart pub global run import_sorter:main --no-comments
   precommit: melos fix && melos format && melos sort
