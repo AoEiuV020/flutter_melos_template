@@ -19,7 +19,9 @@ scripts:
   analyze:
     exec: dart analyze .
   fix:
-    exec: dart fix --apply
+    run: dart fix --apply .
+    exec:
+      concurrency: 1
   sort:
     exec: dart pub global run import_sorter:main --no-comments
   precommit: melos fix && melos format && melos sort
