@@ -3,36 +3,27 @@
 
 name=$1
 exec=$2
-# name 传入了包名就在packages创建包，否则创建修改根项目，
-# exec 默认使用dart, 可以改flutter,
+
+# 检查包名是否提供
 if [ -z "$name" ] || [ "$name" = "." ]; then
-    cd "$ROOT"
-    rm -f pubspec.yaml README.md
-    mv .gitignore .gitignore.bak
-    if [ "$exec" = "flutter" ]; then
-        flutter create --project-name "$project_name" --template=package .
-    else
-        dart create --template=package --force .
-    fi
-    dart pub add dev:melos
-    cat .gitignore.bak >>.gitignore
-    rm -f .gitignore.bak
+    echo "Error: Package name is required"
+    exit 1
+fi
+
+# 检查并创建目录
+if [ ! -d "$packages_dir" ]; then
+    echo "Directory $packages_dir does not exist. Creating..."
+    mkdir -p "$packages_dir"
+fi
+cd "$packages_dir"
+if [ "$exec" = "flutter" ]; then
+    flutter create --template=package "$name"
 else
-    # 检查并创建目录
-    if [ ! -d "$packages_dir" ]; then
-        echo "Directory $packages_dir does not exist. Creating..."
-        mkdir -p "$packages_dir"
-    fi
-    cd "$packages_dir"
-    if [ "$exec" = "flutter" ]; then
-        flutter create --template=package "$name"
-    else
-        dart create --template=package "$name"
-    fi
-    cd "$name"
-    if [ -f "$ROOT/LICENSE" ]; then
-        cp -f "$ROOT/LICENSE" .
-    fi
+    dart create --template=package "$name"
+fi
+cd "$name"
+if [ -f "$ROOT/LICENSE" ]; then
+    cp -f "$ROOT/LICENSE" .
 fi
 if [ "$exec" = "flutter" ]; then
     echo 'include: package:flutter_lints/flutter.yaml' >analysis_options.yaml
