@@ -24,4 +24,8 @@ if [ -f "$ROOT/LICENSE" ]; then
 fi
 echo 'include: package:flutter_lints/flutter.yaml' >analysis_options.yaml
 cat "$script_dir"/analyzer_custom.yaml >>analysis_options.yaml
+
+# 更新 workspace 配置
+update_workspace "$ROOT" "$packages_dir/$name"
+
 "$script_dir"/prepare.sh

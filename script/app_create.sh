@@ -31,4 +31,8 @@ else
     echo 'include: package:flutter_lints/flutter.yaml' >analysis_options.yaml
 fi
 cat "$script_dir"/analyzer_custom.yaml >>analysis_options.yaml
+
+# 更新 workspace 配置
+update_workspace "$ROOT" "$apps_dir/$name"
+
 "$script_dir"/prepare.sh

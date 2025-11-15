@@ -19,4 +19,8 @@ very_good create flame_game --org-name "$organization" "$name"
 cd "$name"
 # sed -i '' '2,$d' analysis_options.yaml
 # cat "$script_dir"/analyzer_custom.yaml >>analysis_options.yaml
+
+# 更新 workspace 配置
+update_workspace "$ROOT" "$apps_dir/$name"
+
 "$script_dir"/prepare.sh
