@@ -24,7 +24,7 @@ melos:
       exec:
         concurrency: 1
     sort:
-      exec: dart pub global run import_sorter:main --no-comments
+      exec: dart pub global run import_sorter --no-comments
     precommit: melos fix && melos format && melos sort
     test:
       run: flutter test --no-pub --coverage
