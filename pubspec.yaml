@@ -11,6 +11,7 @@ dev_dependencies:
   melos: ^7.3.0
   args: ^2.5.0
   path: ^1.9.0
+  lints: ^6.1.0
 
 melos:
   scripts:
