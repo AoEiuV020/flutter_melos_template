@@ -4,8 +4,13 @@ publish_to: none
 environment:
   sdk: ^3.6.0
 
+
+workspace:
+
 dev_dependencies:
   melos: ^7.3.0
+  args: ^2.5.0
+  path: ^1.9.0
 
 melos:
   scripts:

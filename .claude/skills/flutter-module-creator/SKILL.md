@@ -7,57 +7,46 @@ description: Create Flutter/Dart modules in Melos monorepo workspaces. Use when 
 
 Create modules in a Melos monorepo workspace with proper configuration.
 
-## Module Types
-
-| Type | Command | Description |
-|------|---------|-------------|
-| `app` | `python scripts/create_module.py app <name>` | Flutter application |
-| `app --console` | `python scripts/create_module.py app <name> --console` | Dart console application |
-| `package` | `python scripts/create_module.py package <name>` | Dart package |
-| `package --flutter` | `python scripts/create_module.py package <name> --flutter` | Flutter package |
-| `plugin` | `python scripts/create_module.py plugin <name>` | Flutter plugin |
-| `ffi` | `python scripts/create_module.py ffi <name>` | Flutter FFI plugin |
-
-## Usage Examples
+## Usage
 
 ```bash
-# Create Flutter app
-python scripts/create_module.py app my_app
-
-# Create Dart console app
-python scripts/create_module.py app my_cli --console
-
-# Create Dart package
-python scripts/create_module.py package my_utils
-
-# Create Flutter package
-python scripts/create_module.py package my_widgets --flutter
-
-# Create plugin with specific platforms
-python scripts/create_module.py plugin my_plugin --platforms android,ios
-
-# Create FFI plugin (all platforms by default)
-python scripts/create_module.py ffi my_native
-
-# Skip melos bootstrap
-python scripts/create_module.py package my_pkg --no-bootstrap
+dart run <skill_path>/scripts/create_module.dart --type <type> --name <name> [options]
 ```
+
+## Module Types
+
+- `app`: Flutter application (use `--console` for Dart console app)
+- `package`: Dart package (use `--flutter` for Flutter package)
+- `plugin`: Flutter plugin
+- `ffi`: Flutter FFI plugin
 
 ## Options
 
 - `--console`: Create Dart console app (app type only)
 - `--flutter`: Create Flutter package (package type only)
-- `--platforms <list>`: Comma-separated platforms (plugin/ffi)
+- `--platforms <list>`: Comma-separated platforms (plugin/ffi), e.g., `android,ios`
 - `--workspace <path>`: Workspace root (auto-detected)
 - `--no-bootstrap`: Skip melos bootstrap
 
-## Behavior
+## Examples
 
-The script automatically:
-1. Detects workspace root (directory with melos/workspace in pubspec.yaml)
-2. Creates module in `apps/` (apps) or `packages/` (packages/plugins/ffi)
+```bash
+# Basic usage
+dart run <skill_path>/scripts/create_module.dart --type app --name my_app
+dart run <skill_path>/scripts/create_module.dart --type package --name my_utils
+
+# With options
+dart run <skill_path>/scripts/create_module.dart --type app --name my_cli --console
+dart run <skill_path>/scripts/create_module.dart --type package --name my_widgets --flutter
+dart run <skill_path>/scripts/create_module.dart --type plugin --name my_plugin --platforms android,ios
+```
+
+## What It Does
+
+1. Detects workspace root (melos/workspace in pubspec.yaml)
+2. Creates module in `apps/` or `packages/` directory
 3. Configures `analysis_options.yaml` with appropriate lints
 4. Adds `resolution: workspace` to module pubspec.yaml
-5. Updates root `workspace:` list in root pubspec.yaml
+5. Updates root `workspace:` list
 6. Copies LICENSE from workspace root
-7. Runs `melos bootstrap`
+7. Runs `melos bootstrap` (unless `--no-bootstrap`)
