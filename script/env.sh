@@ -6,5 +6,10 @@ project_name=$(basename "$ROOT")
 app_name=$(echo "$project_name" | tr -d '_')
 apps_dir="$ROOT"/apps
 packages_dir="$ROOT"/packages
-organization=com.aoeiuv020
+
+# 从 .env 读取配置
+if [ -f "$ROOT/.env" ]; then
+  . "$ROOT/.env"
+fi
+organization="${ORG:-com.example}"
 
