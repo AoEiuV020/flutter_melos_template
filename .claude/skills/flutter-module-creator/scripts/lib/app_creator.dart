@@ -40,6 +40,6 @@ Future<bool> createApp(
         useFlutter: true, withLicense: false);
   }
 
-  print('✅ Created app: ${modulePath.path}');
+  logger.i('✅ Created app: ${modulePath.path}');
   return true;
 }

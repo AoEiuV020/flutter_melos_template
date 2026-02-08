@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import 'log.dart';
 import 'pubspec_updater.dart';
 
 /// Update analysis_options.yaml by copying from workspace root and adjusting the include line.
@@ -13,7 +14,7 @@ void setupAnalysisOptions(
   final rootAnalysis =
       File(path.join(workspaceRoot.path, 'analysis_options.yaml'));
   if (!rootAnalysis.existsSync()) {
-    print('Warning: No analysis_options.yaml found in workspace root');
+    logger.w('No analysis_options.yaml found in workspace root');
     return;
   }
 

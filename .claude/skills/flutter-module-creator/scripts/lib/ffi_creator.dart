@@ -37,6 +37,6 @@ Future<bool> createFfi(
 
   finalizeModule(workspaceRoot, modulePath);
 
-  print('✅ Created FFI plugin: ${modulePath.path}');
+  logger.i('✅ Created FFI plugin: ${modulePath.path}');
   return true;
 }

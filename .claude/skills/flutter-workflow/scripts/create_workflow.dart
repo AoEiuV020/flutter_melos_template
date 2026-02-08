@@ -33,7 +33,7 @@ File createWorkflow(
   // Check if app exists
   final fullAppPath = Directory(path.join(workspaceRoot.path, appPath));
   if (!fullAppPath.existsSync()) {
-    print('Error: App path does not exist: ${fullAppPath.path}');
+    logger.e('App path does not exist: ${fullAppPath.path}');
     exit(1);
   }
 
@@ -43,7 +43,7 @@ File createWorkflow(
   );
 
   if (!templatePath.existsSync()) {
-    print('Error: Template not found: ${templatePath.path}');
+    logger.e('Template not found: ${templatePath.path}');
     exit(1);
   }
 
@@ -70,12 +70,13 @@ File createWorkflow(
   final outputPath = File(path.join(workflowsDir.path, workflowName));
   outputPath.writeAsStringSync(content);
 
-  print('✅ Created workflow: ${outputPath.path}');
-  print('   App path: $appPath');
+  logger.i('✅ Created workflow: ${outputPath.path}');
+  logger.i('   App path: $appPath');
   return outputPath;
 }
 
 void main(List<String> arguments) {
+
   final parser = ArgParser()
     ..addOption(
       'name',

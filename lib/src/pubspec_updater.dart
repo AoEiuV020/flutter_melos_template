@@ -6,21 +6,19 @@ import 'log.dart';
 void updateModulePubspec(String modulePath) {
   final pubspecFile = File('$modulePath/pubspec.yaml');
   if (!pubspecFile.existsSync()) {
-    log('模块 pubspec.yaml 不存在: $modulePath/pubspec.yaml',
-        level: LogLevel.error);
+    logger.e('模块 pubspec.yaml 不存在: $modulePath/pubspec.yaml');
     exit(1);
   }
 
-  log('找到模块 pubspec.yaml: $modulePath', level: LogLevel.debug);
+  logger.d('找到模块 pubspec.yaml: $modulePath');
   final content = pubspecFile.readAsStringSync();
 
   if (content.contains('resolution:')) {
-    log('模块已包含 resolution: workspace，跳过处理', level: LogLevel.info);
+    logger.i('模块已包含 resolution: workspace，跳过处理');
     return;
   }
 
-  log('向 $modulePath/pubspec.yaml 添加 resolution: workspace',
-      level: LogLevel.debug);
+  logger.d('向 $modulePath/pubspec.yaml 添加 resolution: workspace');
   final lines = content.split('\n');
   final updatedLines = <String>[];
   var environmentFound = false;
@@ -32,7 +30,7 @@ void updateModulePubspec(String modulePath) {
 
     if (!resolutionAdded && line.trimLeft().startsWith('environment:')) {
       environmentFound = true;
-      log('在第 ${i + 1} 行找到 environment 节', level: LogLevel.debug);
+      logger.d('在第 ${i + 1} 行找到 environment 节');
       final environmentIndent =
           line.substring(0, line.indexOf('environment:'));
 
@@ -49,20 +47,18 @@ void updateModulePubspec(String modulePath) {
       updatedLines.add('');
       updatedLines.add('${environmentIndent}resolution: workspace');
       resolutionAdded = true;
-      log('添加 resolution: workspace 节', level: LogLevel.debug);
+      logger.d('添加 resolution: workspace 节');
     }
   }
 
   if (!environmentFound) {
-    log('$modulePath/pubspec.yaml 中未找到 environment 节',
-        level: LogLevel.error);
+    logger.e('$modulePath/pubspec.yaml 中未找到 environment 节');
     exit(1);
   }
 
   if (resolutionAdded) {
     pubspecFile.writeAsStringSync(updatedLines.join('\n'));
-    log('成功更新 $modulePath/pubspec.yaml，已添加 resolution: workspace',
-        level: LogLevel.info);
+    logger.i('成功更新 $modulePath/pubspec.yaml，已添加 resolution: workspace');
   }
 }
 
@@ -70,11 +66,11 @@ void updateModulePubspec(String modulePath) {
 void updateRootPubspec(String rootPath, String? newModulePath) {
   final pubspecFile = File('$rootPath/pubspec.yaml');
   if (!pubspecFile.existsSync()) {
-    log('根目录 pubspec.yaml 不存在: $rootPath', level: LogLevel.error);
+    logger.e('根目录 pubspec.yaml 不存在: $rootPath');
     exit(1);
   }
 
-  log('找到根目录 pubspec.yaml: $rootPath', level: LogLevel.debug);
+  logger.d('找到根目录 pubspec.yaml: $rootPath');
   final content = pubspecFile.readAsStringSync();
   final lines = content.split('\n');
 
@@ -85,7 +81,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
     final line = lines[index];
     if (line.trimLeft().startsWith('workspace:')) {
       inWorkspaceSection = true;
-      log('在第 ${index + 1} 行找到现有的 workspace 节', level: LogLevel.debug);
+      logger.d('在第 ${index + 1} 行找到现有的 workspace 节');
       continue;
     }
     if (inWorkspaceSection) {
@@ -94,7 +90,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
         var path = trimmed.substring(2).trim();
         path = path.replaceAll('\\', '/');
         workspaceSet.add(path);
-        log('找到 workspace 条目: $path (已规范化)', level: LogLevel.debug);
+        logger.d('找到 workspace 条目: $path (已规范化)');
       } else if (trimmed.isNotEmpty && !line.startsWith('  ')) {
         inWorkspaceSection = false;
       }
@@ -107,14 +103,14 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
         : newModulePath;
     relativePath = relativePath.replaceAll('\\', '/');
     if (workspaceSet.add(relativePath)) {
-      log('向 workspace 添加新模块: $relativePath', level: LogLevel.debug);
+      logger.d('向 workspace 添加新模块: $relativePath');
     } else {
-      log('模块已存在于 workspace 中: $relativePath', level: LogLevel.debug);
+      logger.d('模块已存在于 workspace 中: $relativePath');
     }
   }
 
   final sortedWorkspace = workspaceSet.toList()..sort();
-  log('最终 workspace 条目: $sortedWorkspace', level: LogLevel.debug);
+  logger.d('最终 workspace 条目: $sortedWorkspace');
 
   final updatedLines = <String>[];
   var environmentFound = false;
@@ -130,7 +126,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
     if (trimmedLine.startsWith('workspace:')) {
       workspaceFound = true;
       skipUntilNextSection = true;
-      log('删除第 ${i + 1} 行的旧 workspace 节', level: LogLevel.debug);
+      logger.d('删除第 ${i + 1} 行的旧 workspace 节');
       fileChanged = true;
       continue;
     }
@@ -150,8 +146,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
     if (trimmedLine.startsWith('environment:')) {
       environmentFound = true;
       environmentIndent = line.substring(0, line.indexOf('environment:'));
-      log('在第 ${i + 1} 行找到 environment 节，缩进: "${environmentIndent.replaceAll(' ', '·')}"',
-          level: LogLevel.debug);
+      logger.d('在第 ${i + 1} 行找到 environment 节，缩进: "${environmentIndent.replaceAll(' ', '·')}"');
       updatedLines.add(line);
 
       var j = i + 1;
@@ -180,7 +175,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
         updatedLines.add('');
         workspaceFound = true;
         fileChanged = true;
-        log('在 environment 后添加 workspace 节', level: LogLevel.debug);
+        logger.d('在 environment 后添加 workspace 节');
       }
       continue;
     }
@@ -189,8 +184,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
   }
 
   if (!environmentFound && sortedWorkspace.isNotEmpty) {
-    log('未找到 environment 节，将 workspace 添加到文件末尾',
-        level: LogLevel.warning);
+    logger.w('未找到 environment 节，将 workspace 添加到文件末尾');
     updatedLines.add('');
     updatedLines.add('workspace:');
     for (final path in sortedWorkspace) {
@@ -202,11 +196,10 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
 
   if (fileChanged) {
     pubspecFile.writeAsStringSync(updatedLines.join('\n'));
-    log('成功更新根目录 pubspec.yaml', level: LogLevel.info);
-    log('workspace 条目已添加/更新: ${sortedWorkspace.join(", ")}',
-        level: LogLevel.info);
+    logger.i('成功更新根目录 pubspec.yaml');
+    logger.i('workspace 条目已添加/更新: ${sortedWorkspace.join(", ")}');
   } else {
-    log('根目录 pubspec.yaml 无需修改', level: LogLevel.info);
+    logger.i('根目录 pubspec.yaml 无需修改');
   }
 }
 

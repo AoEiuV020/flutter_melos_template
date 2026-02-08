@@ -14,6 +14,7 @@ import 'lib/package_creator.dart';
 import 'lib/plugin_creator.dart';
 
 void main(List<String> arguments) async {
+
   final parser = ArgParser()
     ..addOption('type',
         abbr: 't',
@@ -74,12 +75,12 @@ void main(List<String> arguments) async {
   final config = ProjectConfig(workspaceRoot);
 
   if (!File('${workspaceRoot.path}/pubspec.yaml').existsSync()) {
-    print(
-        'Error: No pubspec.yaml found in workspace root: ${workspaceRoot.path}');
+    logger.e(
+        'No pubspec.yaml found in workspace root: ${workspaceRoot.path}');
     exit(1);
   }
 
-  print('Workspace root: ${workspaceRoot.path}');
+  logger.i('Workspace root: ${workspaceRoot.path}');
 
   final platforms = args['platforms'] != null
       ? (args['platforms'] as String).split(',')
@@ -105,5 +106,5 @@ void main(List<String> arguments) async {
     await runBootstrap(workspaceRoot);
   }
 
-  print("\n🎉 Module '${args['name']}' created successfully!");
+  logger.i("\n🎉 Module '${args['name']}' created successfully!");
 }

@@ -24,6 +24,6 @@ Future<bool> createPackage(
 
   finalizeModule(workspaceRoot, modulePath, useFlutter: flutter);
 
-  print('✅ Created package: ${modulePath.path}');
+  logger.i('✅ Created package: ${modulePath.path}');
   return true;
 }

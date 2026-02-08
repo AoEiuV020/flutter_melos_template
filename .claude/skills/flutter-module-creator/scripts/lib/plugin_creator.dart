@@ -37,6 +37,6 @@ Future<bool> createPlugin(
 
   finalizeModule(workspaceRoot, modulePath);
 
-  print('✅ Created plugin: ${modulePath.path}');
+  logger.i('✅ Created plugin: ${modulePath.path}');
   return true;
 }
