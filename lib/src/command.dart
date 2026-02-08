@@ -31,3 +31,30 @@ Future<bool> runCommand(
     return false;
   }
 }
+
+/// Run a command and return trimmed stdout. Returns `null` on failure.
+Future<String?> runCommandOutput(
+  List<String> cmd, {
+  String? workingDirectory,
+  bool verbose = false,
+}) async {
+  try {
+    if (verbose) {
+      logger.i('Running: ${cmd.join(' ')}');
+    }
+    final result = await Process.run(
+      cmd.first,
+      cmd.skip(1).toList(),
+      workingDirectory: workingDirectory,
+      runInShell: Platform.isWindows,
+    );
+    if (result.exitCode != 0) {
+      logger.e('${result.stderr}');
+      return null;
+    }
+    return result.stdout.toString().trimRight();
+  } catch (e) {
+    logger.e('Error running command: $e');
+    return null;
+  }
+}
