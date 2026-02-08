@@ -37,12 +37,14 @@ void main(List<String> arguments) async {
     exit(0);
   }
 
-  final projectPath = Directory.current.path;
+  final scriptPath = Platform.script.toFilePath();
+  final workspaceRoot = getWorkspaceRoot(scriptPath);
+  final projectPath = workspaceRoot.path;
 
   // Resolve template path: --template arg > .env TEMPLATE_REPO
   String? templateArg = args['template'] as String?;
   if (templateArg == null) {
-    final config = ProjectConfig(Directory(projectPath));
+    final config = ProjectConfig(workspaceRoot);
     templateArg = config.templateRepo;
     if (templateArg == null) {
       print('Error: --template is required (or set TEMPLATE_REPO in .env)\n');
