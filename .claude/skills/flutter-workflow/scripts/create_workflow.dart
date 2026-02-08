@@ -36,7 +36,7 @@ Directory findWorkspaceRoot() {
 /// Create workflow file from template.
 File createWorkflow(
   String appPath, {
-  String workflowName = 'main.yml',
+  String workflowName = 'main',
   Directory? workspaceRoot,
 }) {
   workspaceRoot ??= findWorkspaceRoot();
@@ -83,6 +83,11 @@ File createWorkflow(
     workflowsDir.createSync(recursive: true);
   }
 
+  // Ensure workflow name has .yml extension
+  if (!workflowName.endsWith('.yml') && !workflowName.endsWith('.yaml')) {
+    workflowName = '$workflowName.yml';
+  }
+
   // Write workflow file
   final outputPath = File(path.join(workflowsDir.path, workflowName));
   outputPath.writeAsStringSync(content);
@@ -97,8 +102,8 @@ void main(List<String> arguments) {
     ..addOption(
       'name',
       abbr: 'n',
-      help: 'Workflow filename (default: main.yml)',
-      defaultsTo: 'main.yml',
+      help: 'Workflow filename (default: main)',
+      defaultsTo: 'main',
     )
     ..addOption(
       'workspace',
@@ -132,7 +137,7 @@ void main(List<String> arguments) {
     print('');
     print('Examples:');
     print('  dart run create_workflow.dart apps/my_app');
-    print('  dart run create_workflow.dart apps/my_app --name ci.yml');
+    print('  dart run create_workflow.dart apps/my_app --name ci');
     print('');
     print('Options:');
     print(parser.usage);

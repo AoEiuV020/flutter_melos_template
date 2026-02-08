@@ -17,13 +17,13 @@ dart run <skill_path>/scripts/create_workflow.dart <app_path> [--name <filename>
 
 ```bash
 dart run <skill_path>/scripts/create_workflow.dart apps/my_app
-dart run <skill_path>/scripts/create_workflow.dart apps/my_app --name ci.yml
+dart run <skill_path>/scripts/create_workflow.dart apps/my_app --name ci
 ```
 
 ## Options
 
 - `app_path`: App module path (e.g., `apps/my_app`)
-- `--name`: Workflow filename (default: `main.yml`)
+- `--name`: Workflow filename (default: `main`)
 - `--workspace`: Workspace root path (auto-detected)
 
 ## Template Features
