@@ -11,7 +11,7 @@ import 'package:project_workspace/project_workspace.dart';
 String _getInitialCommit(String repoPath) {
   final result = Process.runSync(
     'git',
-    ['rev-list', '--max-parents=0', 'HEAD'],
+    ['--no-replace-objects', 'rev-list', '--max-parents=0', 'HEAD'],
     workingDirectory: repoPath,
   );
   if (result.exitCode != 0) {
@@ -81,16 +81,6 @@ bool _remoteExists(String repoPath, String remoteName) {
       .any((line) => line.trim() == remoteName);
 }
 
-/// Get the URL of an existing remote.
-String _getRemoteUrl(String repoPath, String remoteName) {
-  final result = Process.runSync(
-    'git',
-    ['remote', 'get-url', remoteName],
-    workingDirectory: repoPath,
-  );
-  return (result.stdout as String).trim();
-}
-
 /// Check if a graft/replace ref exists for a commit.
 bool _graftExists(String repoPath, String sha) {
   final result = Process.runSync(
@@ -99,6 +89,70 @@ bool _graftExists(String repoPath, String sha) {
     workingDirectory: repoPath,
   );
   return (result.stdout as String).split('\n').any((line) => line.startsWith(sha.substring(0, 7)));
+}
+
+/// Check if any graft/replace refs exist.
+bool _hasAnyGraft(String repoPath) {
+  final result = Process.runSync(
+    'git',
+    ['replace', '--list'],
+    workingDirectory: repoPath,
+  );
+  return (result.stdout as String).trim().isNotEmpty;
+}
+
+/// Fetch from template remote.
+void _fetchTemplate(String repoPath) {
+  logger.i('Fetching template...');
+  final result = Process.runSync(
+    'git',
+    ['fetch', 'template'],
+    workingDirectory: repoPath,
+  );
+  if (result.exitCode != 0) {
+    logger.e('Failed to fetch template: ${result.stderr}');
+    exit(1);
+  }
+}
+
+/// Merge template/main into current branch.
+void _mergeTemplate(String repoPath) {
+  logger.i('Merging template/main...');
+  final result = Process.runSync(
+    'git',
+    ['merge', 'template/main', '--no-edit'],
+    workingDirectory: repoPath,
+  );
+
+  if (result.exitCode != 0) {
+    final stderr = (result.stderr as String);
+    if (stderr.contains('CONFLICT') ||
+        (result.stdout as String).contains('CONFLICT')) {
+      logger.w('Merge has conflicts:');
+      final conflictsResult = Process.runSync(
+        'git',
+        ['diff', '--name-only', '--diff-filter=U'],
+        workingDirectory: repoPath,
+      );
+      final conflicts = (conflictsResult.stdout as String).trim();
+      if (conflicts.isNotEmpty) {
+        for (final f in conflicts.split('\n')) {
+          logger.w('  CONFLICT: $f');
+        }
+      }
+      logger.i('Resolve conflicts, then: git add <files> && git commit --no-edit');
+      exit(1);
+    }
+    logger.e('Merge failed: $stderr');
+    exit(1);
+  }
+
+  final stdout = (result.stdout as String).trim();
+  if (stdout.contains('Already up to date')) {
+    logger.i('Already up to date.');
+  } else {
+    logger.i('✅ Template sync completed successfully!');
+  }
 }
 
 void main(List<String> arguments) {
@@ -149,8 +203,32 @@ void main(List<String> arguments) {
   final dryRun = args['dry-run'] as bool;
   final isLocalPath = Directory(templatePath).existsSync();
 
+  // Check if template remote already exists (previous sync)
+  final hasExistingRemote = _remoteExists(projectPath, 'template');
+  final hasExistingGraft = _hasAnyGraft(projectPath);
+
+  if (hasExistingRemote && hasExistingGraft) {
+    // Previous sync exists — just fetch and merge
+    logger.i('Previous sync detected, updating...');
+
+    if (dryRun) {
+      logger.i('[DRY RUN] Would fetch and merge template/main');
+      exit(0);
+    }
+
+    _fetchTemplate(projectPath);
+    _mergeTemplate(projectPath);
+    exit(0);
+  }
+
+  // First-time sync: need to establish graft
+
   // Step 1: Get initial commit of the project
   final initialCommit = _getInitialCommit(projectPath);
+  if (initialCommit.isEmpty) {
+    logger.e('Cannot detect initial commit. Is graft partially set up?');
+    exit(1);
+  }
   logger.i('Project initial commit: $initialCommit');
 
   // Step 2: Determine template commit
@@ -236,33 +314,17 @@ void main(List<String> arguments) {
   // Step 3: Add template remote
   if (!_remoteExists(projectPath, 'template')) {
     logger.i('Adding template remote: $templatePath');
-    final result = Process.runSync(
+    Process.runSync(
       'git',
       ['remote', 'add', 'template', templatePath],
       workingDirectory: projectPath,
     );
-    if (result.exitCode != 0) {
-      logger.e('Failed to add remote: ${result.stderr}');
-      exit(1);
-    }
-  } else {
-    final existingUrl = _getRemoteUrl(projectPath, 'template');
-    logger.i('Template remote already exists: $existingUrl');
   }
 
   // Step 4: Fetch template
-  logger.i('Fetching template...');
-  final fetchResult = Process.runSync(
-    'git',
-    ['fetch', 'template'],
-    workingDirectory: projectPath,
-  );
-  if (fetchResult.exitCode != 0) {
-    logger.e('Failed to fetch template: ${fetchResult.stderr}');
-    exit(1);
-  }
+  _fetchTemplate(projectPath);
 
-  // Step 5: Establish graft (if not already)
+  // Step 5: Establish graft
   if (!_graftExists(projectPath, initialCommit)) {
     logger.i('Establishing graft: $initialCommit -> $templateCommit');
     final graftResult = Process.runSync(
@@ -274,52 +336,8 @@ void main(List<String> arguments) {
       logger.e('Failed to create graft: ${graftResult.stderr}');
       exit(1);
     }
-  } else {
-    logger.i('Graft already exists for $initialCommit');
   }
 
-  // Step 6: Verify merge-base
-  final mergeBaseResult = Process.runSync(
-    'git',
-    ['merge-base', 'main', 'template/main'],
-    workingDirectory: projectPath,
-  );
-  if (mergeBaseResult.exitCode != 0) {
-    logger.e('Failed to find merge-base: ${mergeBaseResult.stderr}');
-    exit(1);
-  }
-  logger.i('Merge base: ${(mergeBaseResult.stdout as String).trim()}');
-
-  // Step 7: Merge
-  logger.i('Merging template/main...');
-  final mergeResult = Process.runSync(
-    'git',
-    ['merge', 'template/main', '--no-edit'],
-    workingDirectory: projectPath,
-  );
-
-  if (mergeResult.exitCode != 0) {
-    final stderr = (mergeResult.stderr as String);
-    if (stderr.contains('CONFLICT')) {
-      logger.w('Merge has conflicts. Please resolve manually:');
-      // List conflicting files
-      final conflictsResult = Process.runSync(
-        'git',
-        ['diff', '--name-only', '--diff-filter=U'],
-        workingDirectory: projectPath,
-      );
-      final conflicts = (conflictsResult.stdout as String).trim();
-      if (conflicts.isNotEmpty) {
-        for (final f in conflicts.split('\n')) {
-          logger.w('  CONFLICT: $f');
-        }
-      }
-      logger.i('After resolving: git add <files> && git commit --no-edit');
-      exit(1);
-    }
-    logger.e('Merge failed: $stderr');
-    exit(1);
-  }
-
-  logger.i('✅ Template sync completed successfully!');
+  // Step 6: Merge
+  _mergeTemplate(projectPath);
 }
