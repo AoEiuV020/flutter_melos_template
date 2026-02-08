@@ -131,142 +131,22 @@ void updateAnalysisOptions(
   analysisFile.writeAsStringSync('${lines.join('\n')}\n');
 }
 
-/// Add resolution: workspace to module pubspec.yaml.
-bool updateModulePubspec(Directory modulePath) {
-  final pubspecFile = File(path.join(modulePath.path, 'pubspec.yaml'));
-  if (!pubspecFile.existsSync()) {
-    print('Error: pubspec.yaml not found in ${modulePath.path}');
-    return false;
-  }
+/// Run update_workspace.dart to update module and root pubspec.yaml.
+Future<bool> updateWorkspace(Directory workspaceRoot, Directory modulePath) async {
+  final scriptDir = path.dirname(Platform.script.toFilePath());
+  final updateScript = path.normalize(path.join(
+    scriptDir,
+    '..',
+    '..',
+    'update-workspace',
+    'scripts',
+    'update_workspace.dart',
+  ));
 
-  var content = pubspecFile.readAsStringSync();
-  if (content.contains('resolution:')) {
-    return true;
-  }
-
-  final lines = content.split('\n');
-  final updatedLines = <String>[];
-  var resolutionAdded = false;
-
-  for (var i = 0; i < lines.length; i++) {
-    final line = lines[i];
-    updatedLines.add(line);
-
-    if (!resolutionAdded && line.trim().startsWith('environment:')) {
-      final indent = line.substring(0, line.length - line.trimLeft().length);
-      // Skip environment content
-      var j = i + 1;
-      while (j < lines.length) {
-        final nextLine = lines[j];
-        if (nextLine.trim().isNotEmpty &&
-            !nextLine.startsWith('$indent  ')) {
-          break;
-        }
-        updatedLines.add(nextLine);
-        j++;
-      }
-      // Add resolution
-      updatedLines.add('');
-      updatedLines.add('${indent}resolution: workspace');
-      resolutionAdded = true;
-      i = j - 1; // Adjust index
-    }
-  }
-
-  pubspecFile.writeAsStringSync(updatedLines.join('\n'));
-  return true;
-}
-
-/// Add module to workspace pubspec.yaml.
-bool updateWorkspacePubspec(Directory workspaceRoot, String moduleRelPath) {
-  final pubspecFile = File(path.join(workspaceRoot.path, 'pubspec.yaml'));
-  if (!pubspecFile.existsSync()) {
-    return false;
-  }
-
-  final content = pubspecFile.readAsStringSync();
-  final lines = content.split('\n');
-
-  // Collect existing workspace entries
-  final workspaceEntries = <String>{};
-  var inWorkspace = false;
-  var workspaceStart = -1;
-  var workspaceEnd = -1;
-
-  for (var i = 0; i < lines.length; i++) {
-    final line = lines[i];
-    if (line.trim().startsWith('workspace:')) {
-      inWorkspace = true;
-      workspaceStart = i;
-      continue;
-    }
-    if (inWorkspace) {
-      final stripped = line.trim();
-      if (stripped.startsWith('- ')) {
-        final entryPath = stripped.substring(2).trim();
-        workspaceEntries.add(entryPath);
-        workspaceEnd = i;
-      } else if (stripped.isNotEmpty && !line.startsWith('  ')) {
-        inWorkspace = false;
-      }
-    }
-  }
-
-  // Normalize and add new entry
-  moduleRelPath = moduleRelPath.replaceAll('\\', '/');
-  workspaceEntries.add(moduleRelPath);
-  final sortedEntries = workspaceEntries.toList()..sort();
-
-  // Rebuild content
-  final newLines = <String>[];
-  if (workspaceStart >= 0) {
-    // Remove old workspace section
-    newLines.addAll(lines.sublist(0, workspaceStart));
-    // Add updated workspace
-    newLines.add('workspace:');
-    for (final entry in sortedEntries) {
-      newLines.add('  - $entry');
-    }
-    // Add remaining content
-    final remainingStart = workspaceEnd >= 0 ? workspaceEnd + 1 : workspaceStart + 1;
-    if (remainingStart < lines.length) {
-      newLines.addAll(lines.sublist(remainingStart));
-    }
-  } else {
-    // Find environment section and add workspace after it
-    var envFound = false;
-    var envEnd = -1;
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-      if (line.trim().startsWith('environment:') && !envFound) {
-        envFound = true;
-        newLines.add(line);
-        // Skip environment content
-        var j = i + 1;
-        while (j < lines.length) {
-          if (lines[j].trim().isNotEmpty && !lines[j].startsWith('  ')) {
-            break;
-          }
-          newLines.add(lines[j]);
-          j++;
-        }
-        envEnd = j;
-        // Add workspace
-        newLines.add('');
-        newLines.add('workspace:');
-        for (final entry in sortedEntries) {
-          newLines.add('  - $entry');
-        }
-        newLines.add('');
-        i = j - 1;
-      } else if (!envFound || i >= envEnd) {
-        newLines.add(line);
-      }
-    }
-  }
-
-  pubspecFile.writeAsStringSync(newLines.join('\n'));
-  return true;
+  return runCommand(
+    ['dart', 'run', updateScript, workspaceRoot.path, modulePath.path],
+    verbose: true,
+  );
 }
 
 /// Copy LICENSE file from workspace root if exists.
@@ -335,8 +215,7 @@ Future<bool> createApp(
     updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: true);
   }
 
-  updateModulePubspec(modulePath);
-  updateWorkspacePubspec(workspaceRoot, 'apps/$name');
+  await updateWorkspace(workspaceRoot, modulePath);
 
   print('✅ Created app: ${modulePath.path}');
   return true;
@@ -366,8 +245,7 @@ Future<bool> createPackage(
 
   copyLicense(workspaceRoot, modulePath);
   updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: flutter);
-  updateModulePubspec(modulePath);
-  updateWorkspacePubspec(workspaceRoot, 'packages/$name');
+  await updateWorkspace(workspaceRoot, modulePath);
 
   print('✅ Created package: ${modulePath.path}');
   return true;
@@ -411,8 +289,7 @@ Future<bool> createPlugin(
 
   copyLicense(workspaceRoot, modulePath);
   updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: true);
-  updateModulePubspec(modulePath);
-  updateWorkspacePubspec(workspaceRoot, 'packages/$name');
+  await updateWorkspace(workspaceRoot, modulePath);
 
   print('✅ Created plugin: ${modulePath.path}');
   return true;
@@ -456,8 +333,7 @@ Future<bool> createFfi(
 
   copyLicense(workspaceRoot, modulePath);
   updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: true);
-  updateModulePubspec(modulePath);
-  updateWorkspacePubspec(workspaceRoot, 'packages/$name');
+  await updateWorkspace(workspaceRoot, modulePath);
 
   print('✅ Created FFI plugin: ${modulePath.path}');
   return true;
