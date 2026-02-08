@@ -8,10 +8,3 @@ apps_dir="$ROOT"/apps
 packages_dir="$ROOT"/packages
 organization=com.aoeiuv020
 
-# 更新 workspace 配置的函数
-update_workspace() {
-  local root_path="${1:-$ROOT}"
-  local module_path="${2:-}"
-  
-  dart "$script_dir/update_workspace.dart" "$root_path" "$module_path"
-}
