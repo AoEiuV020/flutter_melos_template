@@ -4,7 +4,6 @@ publish_to: none
 environment:
   sdk: ^3.6.0
 
-
 workspace:
 
 dev_dependencies:
@@ -12,6 +11,7 @@ dev_dependencies:
   args: ^2.5.0
   path: ^1.9.0
   lints: ^6.1.0
+  dotenv: ^4.2.0
 
 melos:
   scripts:

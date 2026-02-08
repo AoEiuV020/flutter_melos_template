@@ -11,5 +11,4 @@ packages_dir="$ROOT"/packages
 if [ -f "$ROOT/.env" ]; then
   . "$ROOT/.env"
 fi
-organization="${ORG:-com.example}"
 
