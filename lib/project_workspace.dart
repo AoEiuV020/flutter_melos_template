@@ -1,4 +1,5 @@
 export 'src/bootstrap.dart';
+export 'src/cli.dart';
 export 'src/command.dart';
 export 'src/config.dart';
 export 'src/log.dart';

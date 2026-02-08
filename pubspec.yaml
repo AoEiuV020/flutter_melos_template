@@ -10,10 +10,10 @@ dependencies:
   path: ^1.9.0
   dotenv: ^4.2.0
   logger: ^2.6.2
+  args: ^2.5.0
 
 dev_dependencies:
   melos: ^7.3.0
-  args: ^2.5.0
   lints: ^6.1.0
 
 melos:

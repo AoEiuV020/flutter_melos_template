@@ -127,9 +127,7 @@ void main(List<String> arguments) {
   final workflowName = args['name'] as String;
   final scriptPath = Platform.script.toFilePath();
   final scriptDir = Directory(path.dirname(scriptPath));
-  final workspaceRoot = args['workspace'] != null
-      ? Directory(args['workspace'] as String)
-      : getWorkspaceRoot(scriptPath);
+  final workspaceRoot = resolveWorkspace(args, scriptPath);
 
   createWorkflow(
     appPath,

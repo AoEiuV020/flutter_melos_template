@@ -58,20 +58,10 @@ void main(List<String> arguments) async {
     exit(arguments.isEmpty ? 1 : 0);
   }
 
-  if (args['type'] == null) {
-    print('Error: --type is required.\n');
-    print(parser.usage);
-    exit(1);
-  }
-  if (args['name'] == null) {
-    print('Error: --name is required.\n');
-    print(parser.usage);
-    exit(1);
-  }
+  requireOptions(args, parser, ['type', 'name']);
 
-  final workspaceRoot = args['workspace'] != null
-      ? Directory(args['workspace'] as String)
-      : getWorkspaceRoot(Platform.script.toFilePath());
+  final scriptPath = Platform.script.toFilePath();
+  final workspaceRoot = resolveWorkspace(args, scriptPath);
   final config = ProjectConfig(workspaceRoot);
 
   if (!File('${workspaceRoot.path}/pubspec.yaml').existsSync()) {
