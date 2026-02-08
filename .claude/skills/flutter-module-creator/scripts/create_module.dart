@@ -106,28 +106,29 @@ Future<bool> runCommand(
   }
 }
 
-/// Update analysis_options.yaml with appropriate linter config.
-void updateAnalysisOptions(Directory modulePath, {bool useFlutter = true}) {
-  final analysisFile = File(path.join(modulePath.path, 'analysis_options.yaml'));
-  final buffer = StringBuffer();
-
-  if (useFlutter) {
-    buffer.writeln('include: package:flutter_lints/flutter.yaml');
-  } else {
-    buffer.writeln('include: package:lints/recommended.yaml');
+/// Update analysis_options.yaml by copying from workspace root and adjusting the include line.
+void updateAnalysisOptions(
+  Directory modulePath,
+  Directory workspaceRoot, {
+  bool useFlutter = true,
+}) {
+  final rootAnalysis =
+      File(path.join(workspaceRoot.path, 'analysis_options.yaml'));
+  if (!rootAnalysis.existsSync()) {
+    print('Warning: No analysis_options.yaml found in workspace root');
+    return;
   }
 
-  buffer.writeln();
-  buffer.writeln('analyzer:');
-  buffer.writeln('  errors:');
-  buffer.writeln('    asset_directory_does_not_exist: error');
-  buffer.writeln('    argument_type_not_assignable: warning');
-  buffer.writeln('    prefer_relative_imports: error');
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  buffer.writeln('    - prefer_relative_imports');
+  final lines = rootAnalysis.readAsLinesSync();
+  if (lines.isNotEmpty && lines.first.startsWith('include:')) {
+    lines[0] = useFlutter
+        ? 'include: package:flutter_lints/flutter.yaml'
+        : 'include: package:lints/recommended.yaml';
+  }
 
-  analysisFile.writeAsStringSync(buffer.toString());
+  final analysisFile =
+      File(path.join(modulePath.path, 'analysis_options.yaml'));
+  analysisFile.writeAsStringSync('${lines.join('\n')}\n');
 }
 
 /// Add resolution: workspace to module pubspec.yaml.
@@ -315,7 +316,7 @@ Future<bool> createApp(
     if (!await runCommand(cmd, workingDirectory: appsDir.path)) {
       return false;
     }
-    updateAnalysisOptions(modulePath, useFlutter: false);
+    updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: false);
   } else {
     // Flutter app
     removePlatformDirs(appsDir);
@@ -331,7 +332,7 @@ Future<bool> createApp(
     if (!await runCommand(cmd, workingDirectory: appsDir.path)) {
       return false;
     }
-    updateAnalysisOptions(modulePath, useFlutter: true);
+    updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: true);
   }
 
   updateModulePubspec(modulePath);
@@ -364,7 +365,7 @@ Future<bool> createPackage(
   }
 
   copyLicense(workspaceRoot, modulePath);
-  updateAnalysisOptions(modulePath, useFlutter: flutter);
+  updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: flutter);
   updateModulePubspec(modulePath);
   updateWorkspacePubspec(workspaceRoot, 'packages/$name');
 
@@ -409,7 +410,7 @@ Future<bool> createPlugin(
   }
 
   copyLicense(workspaceRoot, modulePath);
-  updateAnalysisOptions(modulePath, useFlutter: true);
+  updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: true);
   updateModulePubspec(modulePath);
   updateWorkspacePubspec(workspaceRoot, 'packages/$name');
 
@@ -454,7 +455,7 @@ Future<bool> createFfi(
   }
 
   copyLicense(workspaceRoot, modulePath);
-  updateAnalysisOptions(modulePath, useFlutter: true);
+  updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: true);
   updateModulePubspec(modulePath);
   updateWorkspacePubspec(workspaceRoot, 'packages/$name');
 
