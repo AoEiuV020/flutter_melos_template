@@ -1,20 +1,17 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-
-import 'command.dart';
-import 'module_setup.dart';
-import 'workspace.dart';
+import 'package:project_workspace/project_workspace.dart';
 
 /// Create a Flutter FFI plugin.
 Future<bool> createFfi(
   String name,
-  Directory workspaceRoot, {
+  Directory workspaceRoot,
+  ProjectConfig config, {
   List<String>? platforms,
   List<String>? extraArgs,
 }) async {
   final packagesDir = ensureDir(path.join(workspaceRoot.path, 'packages'));
-  final org = getOrganization(workspaceRoot);
   final modulePath = Directory(path.join(packagesDir.path, name));
 
   const defaultPlatforms = ['android', 'ios', 'windows', 'macos', 'linux'];
@@ -26,7 +23,7 @@ Future<bool> createFfi(
     'flutter',
     'create',
     '--org',
-    org,
+    config.org,
     '--template=plugin_ffi',
     '--platforms',
     platforms.join(','),

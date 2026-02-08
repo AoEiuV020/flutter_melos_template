@@ -6,14 +6,12 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:path/path.dart' as path;
+import 'package:project_workspace/project_workspace.dart';
 
 import 'lib/app_creator.dart';
-import 'lib/command.dart';
 import 'lib/ffi_creator.dart';
 import 'lib/package_creator.dart';
 import 'lib/plugin_creator.dart';
-import 'lib/workspace.dart';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
@@ -40,8 +38,8 @@ void main(List<String> arguments) async {
         help: 'Workspace root path (auto-detected if not specified)')
     ..addFlag('no-bootstrap',
         help: 'Skip melos bootstrap after creation', negatable: false)
-    ..addFlag('help', abbr: 'h', help: 'Show usage information',
-        negatable: false);
+    ..addFlag('help',
+        abbr: 'h', help: 'Show usage information', negatable: false);
 
   ArgResults args;
   try {
@@ -63,8 +61,9 @@ void main(List<String> arguments) async {
   final workspaceRoot = args['workspace'] != null
       ? Directory(args['workspace'] as String)
       : getWorkspaceRoot(Platform.script.toFilePath());
+  final config = ProjectConfig(workspaceRoot);
 
-  if (!File(path.join(workspaceRoot.path, 'pubspec.yaml')).existsSync()) {
+  if (!File('${workspaceRoot.path}/pubspec.yaml').existsSync()) {
     print(
         'Error: No pubspec.yaml found in workspace root: ${workspaceRoot.path}');
     exit(1);
@@ -77,13 +76,15 @@ void main(List<String> arguments) async {
       : null;
 
   final success = switch (args['type'] as String) {
-    'app' => await createApp(args['name'] as String, workspaceRoot,
+    'app' => await createApp(args['name'] as String, workspaceRoot, config,
         console: args['console'] as bool),
-    'package' => await createPackage(args['name'] as String, workspaceRoot,
+    'package' => await createPackage(
+        args['name'] as String, workspaceRoot, config,
         flutter: args['flutter'] as bool),
-    'plugin' => await createPlugin(args['name'] as String, workspaceRoot,
+    'plugin' => await createPlugin(
+        args['name'] as String, workspaceRoot, config,
         platforms: platforms),
-    'ffi' => await createFfi(args['name'] as String, workspaceRoot,
+    'ffi' => await createFfi(args['name'] as String, workspaceRoot, config,
         platforms: platforms),
     _ => false,
   };

@@ -1,14 +1,13 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-
-import 'command.dart';
-import 'module_setup.dart';
+import 'package:project_workspace/project_workspace.dart';
 
 /// Create a Dart or Flutter package.
 Future<bool> createPackage(
   String name,
-  Directory workspaceRoot, {
+  Directory workspaceRoot,
+  ProjectConfig config, {
   bool flutter = false,
   List<String>? extraArgs,
 }) async {

@@ -1,20 +1,18 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-
-import 'command.dart';
-import 'module_setup.dart';
-import 'workspace.dart';
+import 'package:project_workspace/project_workspace.dart';
 
 /// Create a Flutter app or Dart console application.
 Future<bool> createApp(
   String name,
-  Directory workspaceRoot, {
+  Directory workspaceRoot,
+  ProjectConfig config, {
   bool console = false,
   List<String>? extraArgs,
 }) async {
   final appsDir = ensureDir(path.join(workspaceRoot.path, 'apps'));
-  final org = getOrganization(workspaceRoot);
+
   final modulePath = Directory(path.join(appsDir.path, name));
 
   if (console) {
@@ -30,7 +28,7 @@ Future<bool> createApp(
       'flutter',
       'create',
       '--org',
-      org,
+      config.org,
       '--template=app',
       name,
       ...?extraArgs

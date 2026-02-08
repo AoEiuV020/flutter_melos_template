@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import '../../../update-workspace/scripts/lib/workspace_updater.dart';
+import 'pubspec_updater.dart';
 
 /// Update analysis_options.yaml by copying from workspace root and adjusting the include line.
-void updateAnalysisOptions(
-  Directory modulePath,
-  Directory workspaceRoot, {
+void setupAnalysisOptions(
+  Directory workspaceRoot,
+  Directory modulePath, {
   bool useFlutter = true,
 }) {
   final rootAnalysis =
@@ -64,7 +64,7 @@ Directory ensureDir(String dirPath) {
   return dir;
 }
 
-/// Common post-creation setup: copy license, update analysis, update workspace.
+/// Common post-creation setup: copy license, update analysis, register in workspace.
 void finalizeModule(
   Directory workspaceRoot,
   Directory modulePath, {
@@ -74,7 +74,6 @@ void finalizeModule(
   if (withLicense) {
     copyLicense(workspaceRoot, modulePath);
   }
-  updateAnalysisOptions(modulePath, workspaceRoot, useFlutter: useFlutter);
-  updateModulePubspec(modulePath.path);
-  updateRootPubspec(workspaceRoot.path, modulePath.path);
+  setupAnalysisOptions(workspaceRoot, modulePath, useFlutter: useFlutter);
+  registerModule(workspaceRoot, modulePath);
 }

@@ -12,14 +12,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
-
-/// Get workspace root from a script path.
-/// Scripts are at `<workspace>/.claude/skills/<skill>/scripts/`.
-Directory getWorkspaceRoot(String scriptPath) {
-  final scriptDir = path.dirname(scriptPath);
-  return Directory(
-      path.normalize(path.join(scriptDir, '..', '..', '..', '..')));
-}
+import 'package:project_workspace/project_workspace.dart';
 
 /// Create workflow file from template.
 File createWorkflow(

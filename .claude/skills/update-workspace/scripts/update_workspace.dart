@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'lib/workspace_updater.dart';
+import 'package:project_workspace/project_workspace.dart';
 
 void main(List<String> arguments) {
   log('脚本启动，参数: $arguments');
@@ -20,15 +20,12 @@ void main(List<String> arguments) {
   log('根目录路径: $rootPath', level: LogLevel.debug);
   log('模块路径: $modulePath', level: LogLevel.debug);
 
-  // 验证根目录存在
   if (!Directory(rootPath).existsSync()) {
     log('根目录不存在: $rootPath', level: LogLevel.error);
     exit(1);
   }
 
-  // 更新子模块的 pubspec.yaml（如果提供了路径）
   if (modulePath != null) {
-    // 验证模块目录存在
     if (!Directory(modulePath).existsSync()) {
       log('指定的模块目录不存在: $modulePath', level: LogLevel.error);
       exit(1);
@@ -37,7 +34,6 @@ void main(List<String> arguments) {
     updateModulePubspec(modulePath);
   }
 
-  // 更新根目录的 pubspec.yaml
   log('开始更新根目录 pubspec.yaml: $rootPath', level: LogLevel.info);
   updateRootPubspec(rootPath, modulePath);
 

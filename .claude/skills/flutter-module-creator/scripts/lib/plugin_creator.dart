@@ -1,20 +1,17 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-
-import 'command.dart';
-import 'module_setup.dart';
-import 'workspace.dart';
+import 'package:project_workspace/project_workspace.dart';
 
 /// Create a Flutter plugin.
 Future<bool> createPlugin(
   String name,
-  Directory workspaceRoot, {
+  Directory workspaceRoot,
+  ProjectConfig config, {
   List<String>? platforms,
   List<String>? extraArgs,
 }) async {
   final packagesDir = ensureDir(path.join(workspaceRoot.path, 'packages'));
-  final org = getOrganization(workspaceRoot);
   final modulePath = Directory(path.join(packagesDir.path, name));
 
   removePlatformDirs(Directory(packagesDir.path));
@@ -23,7 +20,7 @@ Future<bool> createPlugin(
     'flutter',
     'create',
     '--org',
-    org,
+    config.org,
     '--template=plugin',
     name,
   ];
