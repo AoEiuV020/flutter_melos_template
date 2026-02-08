@@ -18,10 +18,9 @@ void main(List<String> arguments) async {
     ..addOption('type',
         abbr: 't',
         allowed: ['app', 'package', 'plugin', 'ffi'],
-        help: 'Type of module to create',
-        mandatory: true)
+        help: 'Type of module to create')
     ..addOption('name',
-        abbr: 'n', help: 'Name of the module', mandatory: true)
+        abbr: 'n', help: 'Name of the module')
     ..addFlag('console',
         help: 'Create Dart console app instead of Flutter app (app type only)',
         negatable: false)
@@ -50,12 +49,23 @@ void main(List<String> arguments) async {
     exit(1);
   }
 
-  if (args['help'] as bool) {
+  if (args['help'] as bool || arguments.isEmpty) {
     print('Flutter/Dart Module Creator\n');
     print(
         'Usage: dart run create_module.dart --type <type> --name <name> [options]\n');
     print(parser.usage);
-    exit(0);
+    exit(arguments.isEmpty ? 1 : 0);
+  }
+
+  if (args['type'] == null) {
+    print('Error: --type is required.\n');
+    print(parser.usage);
+    exit(1);
+  }
+  if (args['name'] == null) {
+    print('Error: --name is required.\n');
+    print(parser.usage);
+    exit(1);
   }
 
   final workspaceRoot = args['workspace'] != null

@@ -119,7 +119,7 @@ void main(List<String> arguments) {
     print('');
     print('Options:');
     print(parser.usage);
-    exit(rest.isEmpty ? 1 : 0);
+    exit(args['help'] as bool ? 0 : 1);
   }
 
   final appPath = rest.first;
