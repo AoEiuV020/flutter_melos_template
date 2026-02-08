@@ -13,34 +13,21 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
-/// Find the workspace root by looking for pubspec.yaml with melos config.
-Directory findWorkspaceRoot() {
-  var current = Directory.current;
-  while (true) {
-    final pubspec = File(path.join(current.path, 'pubspec.yaml'));
-    if (pubspec.existsSync()) {
-      final content = pubspec.readAsStringSync();
-      if (content.contains('melos:') || content.contains('workspace:')) {
-        return current;
-      }
-    }
-    final parent = current.parent;
-    if (parent.path == current.path) {
-      break;
-    }
-    current = parent;
-  }
-  return Directory.current;
+/// Get workspace root from a script path.
+/// Scripts are at `<workspace>/.claude/skills/<skill>/scripts/`.
+Directory getWorkspaceRoot(String scriptPath) {
+  final scriptDir = path.dirname(scriptPath);
+  return Directory(
+      path.normalize(path.join(scriptDir, '..', '..', '..', '..')));
 }
 
 /// Create workflow file from template.
 File createWorkflow(
   String appPath, {
   String workflowName = 'main',
-  Directory? workspaceRoot,
+  required Directory workspaceRoot,
+  required Directory scriptDir,
 }) {
-  workspaceRoot ??= findWorkspaceRoot();
-
   // Normalize app path
   appPath = appPath.replaceAll(RegExp(r'/+$'), '');
   if (!appPath.startsWith('apps/') && !appPath.startsWith('packages/')) {
@@ -58,8 +45,6 @@ File createWorkflow(
   }
 
   // Locate template
-  final scriptFile = File(Platform.script.toFilePath());
-  final scriptDir = scriptFile.parent;
   final templatePath = File(
     path.join(scriptDir.parent.path, 'assets', 'main.yml.template'),
   );
@@ -146,13 +131,16 @@ void main(List<String> arguments) {
 
   final appPath = rest.first;
   final workflowName = args['name'] as String;
+  final scriptPath = Platform.script.toFilePath();
+  final scriptDir = Directory(path.dirname(scriptPath));
   final workspaceRoot = args['workspace'] != null
       ? Directory(args['workspace'] as String)
-      : null;
+      : getWorkspaceRoot(scriptPath);
 
   createWorkflow(
     appPath,
     workflowName: workflowName,
     workspaceRoot: workspaceRoot,
+    scriptDir: scriptDir,
   );
 }

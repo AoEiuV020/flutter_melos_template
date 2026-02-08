@@ -2,24 +2,12 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-/// Find the workspace root by looking for pubspec.yaml with melos config.
-Directory findWorkspaceRoot() {
-  var current = Directory.current;
-  while (true) {
-    final pubspec = File(path.join(current.path, 'pubspec.yaml'));
-    if (pubspec.existsSync()) {
-      final content = pubspec.readAsStringSync();
-      if (content.contains('melos:') || content.contains('workspace:')) {
-        return current;
-      }
-    }
-    final parent = current.parent;
-    if (parent.path == current.path) {
-      break;
-    }
-    current = parent;
-  }
-  return Directory.current;
+/// Get workspace root from a script path.
+/// Scripts are at `<workspace>/.claude/skills/<skill>/scripts/`.
+Directory getWorkspaceRoot(String scriptPath) {
+  final scriptDir = path.dirname(scriptPath);
+  return Directory(
+      path.normalize(path.join(scriptDir, '..', '..', '..', '..')));
 }
 
 /// Extract organization from existing modules or use default.

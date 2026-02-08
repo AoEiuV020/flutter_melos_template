@@ -62,7 +62,7 @@ void main(List<String> arguments) async {
 
   final workspaceRoot = args['workspace'] != null
       ? Directory(args['workspace'] as String)
-      : findWorkspaceRoot();
+      : getWorkspaceRoot(Platform.script.toFilePath());
 
   if (!File(path.join(workspaceRoot.path, 'pubspec.yaml')).existsSync()) {
     print(
