@@ -1,7 +1,7 @@
 #!/usr/bin/env dart
 /// 模板同步 — 将上游模板更新合并到派生项目中。
 ///
-/// 用法: dart run sync_template.dart [--template <路径>] [选项]
+/// 用法: dart run sync_template.dart [--template <路径>] [--project <路径>] [选项]
 
 import 'dart:io';
 
@@ -14,6 +14,8 @@ void main(List<String> arguments) async {
   final parser = ArgParser()
     ..addOption('template',
         abbr: 't', help: '模板仓库路径（必填）')
+    ..addOption('project',
+        abbr: 'p', help: '要更新的项目路径（默认为当前工作区）')
     ..addOption('template-commit',
         abbr: 'c', help: '项目所基于的模板 commit SHA')
     ..addFlag('dry-run',
@@ -32,19 +34,29 @@ void main(List<String> arguments) async {
 
   if (args['help'] as bool) {
     print('将模板更改同步到当前项目。\n');
-    print('用法: dart run sync_template.dart [--template <路径>] [选项]\n');
+    print('用法: dart run sync_template.dart [--template <路径>] [--project <路径>] [选项]\n');
     print(parser.usage);
     exit(0);
   }
 
   final scriptPath = Platform.script.toFilePath();
   final workspaceRoot = getWorkspaceRoot(scriptPath);
-  final projectPath = workspaceRoot.path;
+
+  // 解析项目路径: --project 参数 > 当前工作区
+  final projectArg = args['project'] as String?;
+  final projectPath = projectArg != null
+      ? Directory(projectArg).absolute.path
+      : workspaceRoot.path;
+
+  if (!Directory(projectPath).existsSync()) {
+    print('错误: 项目路径不存在: $projectPath\n');
+    exit(1);
+  }
 
   // 解析模板路径: --template 参数 > .env TEMPLATE_REPO
   String? templateArg = args['template'] as String?;
   if (templateArg == null) {
-    final config = ProjectConfig(workspaceRoot);
+    final config = ProjectConfig(Directory(projectPath));
     templateArg = config.templateRepo;
     if (templateArg == null) {
       print('错误: --template 是必填项（或在 .env 中设置 TEMPLATE_REPO）\n');
