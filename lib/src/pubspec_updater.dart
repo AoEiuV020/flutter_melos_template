@@ -2,6 +2,114 @@ import 'dart:io';
 
 import 'log.dart';
 
+/// 从 git remote URL 获取 HTTPS 仓库地址。
+/// 假设服务器和 GitHub 一样的 SSH/HTTPS 对应关系，支持任意 git 服务器。
+/// 获取失败时返回 null。
+String? _getGitHubRepoUrl(String workspacePath) {
+  try {
+    final result = Process.runSync(
+      'git',
+      ['config', '--get', 'remote.origin.url'],
+      workingDirectory: workspacePath,
+    );
+    if (result.exitCode != 0) return null;
+
+    var url = result.stdout.toString().trim();
+    if (url.isEmpty) return null;
+
+    // SSH 格式: git@host:user/repo.git
+    final sshMatch = RegExp(r'git@(.+?):(.+?)(?:\.git)?$').firstMatch(url);
+    if (sshMatch != null) {
+      return 'https://${sshMatch.group(1)}/${sshMatch.group(2)}';
+    }
+
+    // HTTPS 格式: https://host/user/repo.git
+    final httpsMatch =
+        RegExp(r'(https?://.+?)(?:\.git)?$').firstMatch(url);
+    if (httpsMatch != null) {
+      return httpsMatch.group(1);
+    }
+
+    // git:// 格式: git://host/user/repo.git
+    final gitMatch =
+        RegExp(r'git://(.+?)(?:\.git)?$').firstMatch(url);
+    if (gitMatch != null) {
+      return 'https://${gitMatch.group(1)}';
+    }
+
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/// 获取当前 git 分支名称。
+String _getGitBranch(String workspacePath) {
+  try {
+    final result = Process.runSync(
+      'git',
+      ['rev-parse', '--abbrev-ref', 'HEAD'],
+      workingDirectory: workspacePath,
+    );
+    if (result.exitCode == 0) {
+      final branch = result.stdout.toString().trim();
+      if (branch.isNotEmpty && branch != 'HEAD') return branch;
+    }
+  } catch (_) {}
+  return 'main';
+}
+
+/// 构建模块的 repository URL。
+/// 格式: https://github.com/user/repo/tree/branch/module/relative/path
+String? _buildModuleRepositoryUrl(
+    String workspacePath, String modulePath) {
+  final repoUrl = _getGitHubRepoUrl(workspacePath);
+  if (repoUrl == null) return null;
+
+  final branch = _getGitBranch(workspacePath);
+  var relativePath = modulePath.startsWith(workspacePath)
+      ? modulePath.substring(workspacePath.length + 1)
+      : modulePath;
+  relativePath = relativePath.replaceAll('\\', '/');
+
+  return '$repoUrl/tree/$branch/$relativePath';
+}
+
+/// 向模块的 pubspec.yaml 添加 repository 字段。
+void _addRepositoryField(String workspacePath, String modulePath) {
+  final repoUrl = _buildModuleRepositoryUrl(workspacePath, modulePath);
+  if (repoUrl == null) {
+    logger.d('无法获取 git 仓库地址，跳过 repository 字段');
+    return;
+  }
+
+  final pubspecFile = File('$modulePath/pubspec.yaml');
+  if (!pubspecFile.existsSync()) return;
+
+  final content = pubspecFile.readAsStringSync();
+
+  // 已有 repository 字段则跳过
+  if (RegExp(r'^repository:', multiLine: true).hasMatch(content)) {
+    logger.d('模块已包含 repository 字段，跳过');
+    return;
+  }
+
+  // 移除注释掉的 repository 行
+  var cleaned =
+      content.replaceAll(RegExp(r'# *repository:.*\n'), '');
+
+  // 在 description 或 version 后插入 repository
+  final insertPattern =
+      RegExp(r'((?:version|description):.*\n)');
+  final match = insertPattern.firstMatch(cleaned);
+  if (match != null) {
+    final insertPos = match.end;
+    cleaned = '${cleaned.substring(0, insertPos)}repository: $repoUrl\n${cleaned.substring(insertPos)}';
+    pubspecFile.writeAsStringSync(cleaned);
+    logger.i('已添加 repository: $repoUrl');
+  }
+}
+
 /// 向模块的 pubspec.yaml 添加 `resolution: workspace`。
 void updateModulePubspec(String modulePath) {
   final pubspecFile = File('$modulePath/pubspec.yaml');
@@ -206,5 +314,6 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
 /// 在工作区中注册模块（同时更新模块和根目录的 pubspec）。
 void registerModule(Directory workspaceRoot, Directory modulePath) {
   updateModulePubspec(modulePath.path);
+  _addRepositoryField(workspaceRoot.path, modulePath.path);
   updateRootPubspec(workspaceRoot.path, modulePath.path);
 }
