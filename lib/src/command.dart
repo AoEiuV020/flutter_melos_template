@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'log.dart';
 
-/// Run a command and return success status.
+/// 执行命令并返回是否成功。
 Future<bool> runCommand(
   List<String> cmd, {
   String? workingDirectory,
@@ -10,7 +10,7 @@ Future<bool> runCommand(
 }) async {
   try {
     if (verbose) {
-      logger.i('Running: ${cmd.join(' ')}');
+      logger.i('正在执行: ${cmd.join(' ')}');
     }
     final result = await Process.run(
       cmd.first,
@@ -27,12 +27,12 @@ Future<bool> runCommand(
     }
     return true;
   } catch (e) {
-    logger.e('Error running command: $e');
+    logger.e('执行命令出错: $e');
     return false;
   }
 }
 
-/// Run a command and return trimmed stdout. Returns `null` on failure.
+/// 执行命令并返回裁剪后的标准输出。失败时返回 `null`。
 Future<String?> runCommandOutput(
   List<String> cmd, {
   String? workingDirectory,
@@ -40,7 +40,7 @@ Future<String?> runCommandOutput(
 }) async {
   try {
     if (verbose) {
-      logger.i('Running: ${cmd.join(' ')}');
+      logger.i('正在执行: ${cmd.join(' ')}');
     }
     final result = await Process.run(
       cmd.first,
@@ -54,7 +54,7 @@ Future<String?> runCommandOutput(
     }
     return result.stdout.toString().trimRight();
   } catch (e) {
-    logger.e('Error running command: $e');
+    logger.e('执行命令出错: $e');
     return null;
   }
 }

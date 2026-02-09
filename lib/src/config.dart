@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:path/path.dart' as path;
 
-/// Project configuration loaded from `.env` at workspace root.
+/// 从工作区根目录的 `.env` 文件加载的项目配置。
 class ProjectConfig {
   final String org;
   final String? templateRepo;
 
   ProjectConfig._({required this.org, this.templateRepo});
 
-  /// Load config from workspace root's `.env` file.
+  /// 从工作区根目录的 `.env` 文件加载配置。
   factory ProjectConfig(Directory workspaceRoot) {
     final envPath = path.join(workspaceRoot.path, '.env');
     final env = DotEnv();

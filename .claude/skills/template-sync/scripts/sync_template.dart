@@ -1,7 +1,7 @@
 #!/usr/bin/env dart
-/// Template Sync — merge upstream template updates into derived projects.
+/// 模板同步 — 将上游模板更新合并到派生项目中。
 ///
-/// Usage: dart run sync_template.dart [--template <path>] [options]
+/// 用法: dart run sync_template.dart [--template <路径>] [选项]
 
 import 'dart:io';
 
@@ -13,26 +13,26 @@ import 'lib/template_syncer.dart';
 void main(List<String> arguments) async {
   final parser = ArgParser()
     ..addOption('template',
-        abbr: 't', help: 'Path to the template repository (required)')
+        abbr: 't', help: '模板仓库路径（必填）')
     ..addOption('template-commit',
-        abbr: 'c', help: 'Template commit SHA the project was based on')
+        abbr: 'c', help: '项目所基于的模板 commit SHA')
     ..addFlag('dry-run',
-        help: 'Show what would be done without executing', negatable: false)
+        help: '仅显示将执行的操作，不实际执行', negatable: false)
     ..addFlag('help',
-        abbr: 'h', help: 'Show usage information', negatable: false);
+        abbr: 'h', help: '显示帮助信息', negatable: false);
 
   ArgResults args;
   try {
     args = parser.parse(arguments);
   } catch (e) {
-    print('Error: $e\n');
+    print('错误: $e\n');
     print(parser.usage);
     exit(1);
   }
 
   if (args['help'] as bool) {
-    print('Sync template changes into the current project.\n');
-    print('Usage: dart run sync_template.dart [--template <path>] [options]\n');
+    print('将模板更改同步到当前项目。\n');
+    print('用法: dart run sync_template.dart [--template <路径>] [选项]\n');
     print(parser.usage);
     exit(0);
   }
@@ -41,17 +41,17 @@ void main(List<String> arguments) async {
   final workspaceRoot = getWorkspaceRoot(scriptPath);
   final projectPath = workspaceRoot.path;
 
-  // Resolve template path: --template arg > .env TEMPLATE_REPO
+  // 解析模板路径: --template 参数 > .env TEMPLATE_REPO
   String? templateArg = args['template'] as String?;
   if (templateArg == null) {
     final config = ProjectConfig(workspaceRoot);
     templateArg = config.templateRepo;
     if (templateArg == null) {
-      print('Error: --template is required (or set TEMPLATE_REPO in .env)\n');
+      print('错误: --template 是必填项（或在 .env 中设置 TEMPLATE_REPO）\n');
       print(parser.usage);
       exit(1);
     }
-    logger.i('Template from .env: $templateArg');
+    logger.i('从 .env 读取模板路径: $templateArg');
   }
 
   final templatePath = Directory(templateArg).existsSync()

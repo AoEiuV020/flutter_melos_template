@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:project_workspace/project_workspace.dart';
 
-/// Create a Flutter FFI plugin.
+/// 创建 Flutter FFI 插件。
 Future<bool> createFfi(
   String name,
   Directory workspaceRoot,
@@ -37,6 +37,6 @@ Future<bool> createFfi(
 
   finalizeModule(workspaceRoot, modulePath);
 
-  logger.i('✅ Created FFI plugin: ${modulePath.path}');
+  logger.i('✅ 已创建 FFI 插件: ${modulePath.path}');
   return true;
 }

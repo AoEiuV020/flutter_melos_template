@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 import 'log.dart';
 import 'pubspec_updater.dart';
 
-/// Update analysis_options.yaml by copying from workspace root and adjusting the include line.
+/// 更新 analysis_options.yaml，从工作区根目录复制并调整 include 行。
 void setupAnalysisOptions(
   Directory workspaceRoot,
   Directory modulePath, {
@@ -14,7 +14,7 @@ void setupAnalysisOptions(
   final rootAnalysis =
       File(path.join(workspaceRoot.path, 'analysis_options.yaml'));
   if (!rootAnalysis.existsSync()) {
-    logger.w('No analysis_options.yaml found in workspace root');
+    logger.w('工作区根目录未找到 analysis_options.yaml');
     return;
   }
 
@@ -30,7 +30,7 @@ void setupAnalysisOptions(
   analysisFile.writeAsStringSync('${lines.join('\n')}\n');
 }
 
-/// Copy LICENSE file from workspace root if exists.
+/// 从工作区根目录复制 LICENSE 文件（如果存在）。
 void copyLicense(Directory workspaceRoot, Directory modulePath) {
   final licenseFile = File(path.join(workspaceRoot.path, 'LICENSE'));
   if (licenseFile.existsSync()) {
@@ -39,7 +39,7 @@ void copyLicense(Directory workspaceRoot, Directory modulePath) {
   }
 }
 
-/// Remove platform directories that might interfere with creation.
+/// 删除可能干扰创建的平台目录。
 void removePlatformDirs(Directory dir) {
   for (final platform in [
     'windows',
@@ -56,7 +56,7 @@ void removePlatformDirs(Directory dir) {
   }
 }
 
-/// Ensure a directory exists, creating it if necessary.
+/// 确保目录存在，必要时创建。
 Directory ensureDir(String dirPath) {
   final dir = Directory(dirPath);
   if (!dir.existsSync()) {
@@ -65,7 +65,7 @@ Directory ensureDir(String dirPath) {
   return dir;
 }
 
-/// Common post-creation setup: copy license, update analysis, register in workspace.
+/// 通用的创建后设置: 复制许可证、更新分析选项、注册到工作区。
 void finalizeModule(
   Directory workspaceRoot,
   Directory modulePath, {

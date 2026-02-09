@@ -4,10 +4,10 @@ import 'package:project_workspace/project_workspace.dart';
 
 import 'git_helpers.dart';
 
-/// Sync template updates into an existing project.
+/// 将模板更新同步到现有项目中。
 ///
-/// If previously synced (remote + graft exist), just fetch and merge.
-/// Otherwise, detect initial commit, establish graft, then merge.
+/// 如果之前已同步过（remote + graft 已存在），仅执行 fetch 和 merge。
+/// 否则，检测初始 commit，建立 graft，然后 merge。
 Future<void> syncTemplate({
   required String projectPath,
   required String templatePath,
@@ -30,12 +30,12 @@ Future<void> syncTemplate({
   );
 }
 
-/// Update an existing sync: fetch + merge.
+/// 更新已有的同步: fetch + merge。
 Future<void> _updateSync(String projectPath, {bool dryRun = false}) async {
-  logger.i('Previous sync detected, updating...');
+  logger.i('检测到之前的同步记录，正在更新...');
 
   if (dryRun) {
-    logger.i('[DRY RUN] Would fetch and merge template/main');
+    logger.i('[演练模式] 将执行 fetch 和 merge template/main');
     return;
   }
 
@@ -43,7 +43,7 @@ Future<void> _updateSync(String projectPath, {bool dryRun = false}) async {
   await _mergeTemplate(projectPath);
 }
 
-/// First-time sync: detect commit, add remote, graft, fetch, merge.
+/// 首次同步: 检测 commit，添加 remote，建立 graft，fetch，merge。
 Future<void> _firstSync({
   required String projectPath,
   required String templatePath,
@@ -52,15 +52,15 @@ Future<void> _firstSync({
 }) async {
   final isLocalPath = Directory(templatePath).existsSync();
 
-  // Step 1: Detect initial commit
+  // 步骤 1: 检测初始 commit
   final initialCommit = await getInitialCommit(projectPath);
   if (initialCommit == null || initialCommit.isEmpty) {
-    logger.e('Cannot detect initial commit.');
+    logger.e('无法检测初始 commit。');
     exit(1);
   }
-  logger.i('Project initial commit: $initialCommit');
+  logger.i('项目初始 commit: $initialCommit');
 
-  // Step 2: Determine template commit
+  // 步骤 2: 确定模板 commit
   final templateCommit = await _resolveTemplateCommit(
     projectPath: projectPath,
     templatePath: templatePath,
@@ -68,17 +68,17 @@ Future<void> _firstSync({
     userProvided: templateCommitSha,
     isLocalPath: isLocalPath,
   );
-  logger.i('Template commit: $templateCommit');
+  logger.i('模板 commit: $templateCommit');
 
   if (dryRun) {
-    logger.i('[DRY RUN] Would graft: $initialCommit -> $templateCommit');
-    logger.i('[DRY RUN] Would merge template/main');
+    logger.i('[演练模式] 将建立 graft: $initialCommit -> $templateCommit');
+    logger.i('[演练模式] 将执行 merge template/main');
     return;
   }
 
-  // Step 3: Add remote + fetch
+  // 步骤 3: 添加 remote + fetch
   if (!await remoteExists(projectPath, 'template')) {
-    logger.i('Adding template remote: $templatePath');
+    logger.i('添加模板 remote: $templatePath');
     await runCommand(
       ['git', 'remote', 'add', 'template', templatePath],
       workingDirectory: projectPath,
@@ -86,9 +86,9 @@ Future<void> _firstSync({
   }
   await _fetchTemplate(projectPath);
 
-  // Step 4: Establish graft
+  // 步骤 4: 建立 graft
   if (!await graftExists(projectPath, initialCommit)) {
-    logger.i('Establishing graft: $initialCommit -> $templateCommit');
+    logger.i('建立 graft: $initialCommit -> $templateCommit');
     final ok = await runCommand(
       ['git', 'replace', '--graft', initialCommit, templateCommit],
       workingDirectory: projectPath,
@@ -96,11 +96,11 @@ Future<void> _firstSync({
     if (!ok) exit(1);
   }
 
-  // Step 5: Merge
+  // 步骤 5: Merge
   await _mergeTemplate(projectPath);
 }
 
-/// Resolve which template commit to use as graft parent.
+/// 解析用作 graft 父节点的模板 commit。
 Future<String> _resolveTemplateCommit({
   required String projectPath,
   required String templatePath,
@@ -112,21 +112,21 @@ Future<String> _resolveTemplateCommit({
 
   final initialTime = await getCommitTime(projectPath, initialCommit);
   if (initialTime == null) {
-    logger.e('Cannot get timestamp of initial commit.');
+    logger.e('无法获取初始 commit 的时间戳。');
     exit(1);
   }
-  logger.i('Initial commit time: $initialTime');
+  logger.i('初始 commit 时间: $initialTime');
 
   if (isLocalPath) {
     final commit = await findTemplateCommitByTime(templatePath, initialTime);
     if (commit == null) {
-      logger.e('No template commit found before initial time.');
+      logger.e('未找到初始时间之前的模板 commit。');
       exit(1);
     }
     return commit;
   }
 
-  // Remote URL: add remote + fetch first, then search fetched refs
+  // 远程 URL: 先添加 remote + fetch，然后搜索已拉取的引用
   if (!await remoteExists(projectPath, 'template')) {
     await runCommand(
       ['git', 'remote', 'add', 'template', templatePath],
@@ -141,16 +141,16 @@ Future<String> _resolveTemplateCommit({
     ref: 'template/main',
   );
   if (commit == null) {
-    logger.e('No template commit found before initial time. '
-        'Please provide --template-commit');
+    logger.e('未找到初始时间之前的模板 commit。'
+        '请提供 --template-commit');
     exit(1);
   }
   return commit;
 }
 
-/// Fetch from template remote.
+/// 从模板 remote 拉取。
 Future<void> _fetchTemplate(String repoPath) async {
-  logger.i('Fetching template...');
+  logger.i('正在拉取模板...');
   final ok = await runCommand(
     ['git', 'fetch', 'template'],
     workingDirectory: repoPath,
@@ -158,9 +158,9 @@ Future<void> _fetchTemplate(String repoPath) async {
   if (!ok) exit(1);
 }
 
-/// Merge template/main into current branch.
+/// 将 template/main 合并到当前分支。
 Future<void> _mergeTemplate(String repoPath) async {
-  logger.i('Merging template/main...');
+  logger.i('正在合并 template/main...');
 
   final output = await runCommandOutput(
     ['git', 'merge', 'template/main', '--no-edit'],
@@ -168,25 +168,25 @@ Future<void> _mergeTemplate(String repoPath) async {
   );
 
   if (output == null) {
-    // Check if it's a conflict
+    // 检查是否存在冲突
     final conflicts = await runCommandOutput(
       ['git', 'diff', '--name-only', '--diff-filter=U'],
       workingDirectory: repoPath,
     );
     if (conflicts != null && conflicts.isNotEmpty) {
-      logger.w('Merge has conflicts:');
+      logger.w('合并存在冲突:');
       for (final f in conflicts.split('\n')) {
-        logger.w('  CONFLICT: $f');
+        logger.w('  冲突: $f');
       }
       logger.i(
-          'Resolve conflicts, then: git add <files> && git commit --no-edit');
+          '请解决冲突后执行: git add <文件> && git commit --no-edit');
     }
     exit(1);
   }
 
   if (output.contains('Already up to date')) {
-    logger.i('Already up to date.');
+    logger.i('已是最新状态。');
   } else {
-    logger.i('✅ Template sync completed successfully!');
+    logger.i('✅ 模板同步成功完成！');
   }
 }

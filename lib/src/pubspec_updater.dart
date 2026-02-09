@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'log.dart';
 
-/// Add `resolution: workspace` to a module's pubspec.yaml.
+/// 向模块的 pubspec.yaml 添加 `resolution: workspace`。
 void updateModulePubspec(String modulePath) {
   final pubspecFile = File('$modulePath/pubspec.yaml');
   if (!pubspecFile.existsSync()) {
@@ -62,7 +62,7 @@ void updateModulePubspec(String modulePath) {
   }
 }
 
-/// Update root pubspec.yaml workspace list, optionally adding a new module.
+/// 更新根目录 pubspec.yaml 的 workspace 列表，可选添加新模块。
 void updateRootPubspec(String rootPath, String? newModulePath) {
   final pubspecFile = File('$rootPath/pubspec.yaml');
   if (!pubspecFile.existsSync()) {
@@ -203,7 +203,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
   }
 }
 
-/// Register a module in the workspace (update both module and root pubspec).
+/// 在工作区中注册模块（同时更新模块和根目录的 pubspec）。
 void registerModule(Directory workspaceRoot, Directory modulePath) {
   updateModulePubspec(modulePath.path);
   updateRootPubspec(workspaceRoot.path, modulePath.path);

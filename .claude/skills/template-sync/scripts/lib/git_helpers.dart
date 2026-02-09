@@ -1,6 +1,6 @@
 import 'package:project_workspace/project_workspace.dart';
 
-/// Get the initial (first) commit, bypassing graft replacements.
+/// 获取初始（第一个）commit，绕过 graft 替换。
 Future<String?> getInitialCommit(String repoPath) async {
   final output = await runCommandOutput(
     ['git', '--no-replace-objects', 'rev-list', '--max-parents=0', 'HEAD'],
@@ -11,7 +11,7 @@ Future<String?> getInitialCommit(String repoPath) async {
   return commits.last.trim();
 }
 
-/// Get the commit timestamp (unix epoch).
+/// 获取 commit 的时间戳（unix 纪元）。
 Future<int?> getCommitTime(String repoPath, String sha) async {
   final output = await runCommandOutput(
     ['git', 'log', '-1', '--format=%ct', sha],
@@ -21,7 +21,7 @@ Future<int?> getCommitTime(String repoPath, String sha) async {
   return int.tryParse(output.trim());
 }
 
-/// Check if a git remote exists.
+/// 检查 git remote 是否存在。
 Future<bool> remoteExists(String repoPath, String remoteName) async {
   final output = await runCommandOutput(
     ['git', 'remote'],
@@ -31,7 +31,7 @@ Future<bool> remoteExists(String repoPath, String remoteName) async {
   return output.split('\n').any((line) => line.trim() == remoteName);
 }
 
-/// Check if any graft/replace refs exist.
+/// 检查是否存在任何 graft/replace 引用。
 Future<bool> hasAnyGraft(String repoPath) async {
   final output = await runCommandOutput(
     ['git', 'replace', '--list'],
@@ -40,7 +40,7 @@ Future<bool> hasAnyGraft(String repoPath) async {
   return output != null && output.isNotEmpty;
 }
 
-/// Check if a graft/replace ref exists for a specific commit.
+/// 检查特定 commit 的 graft/replace 引用是否存在。
 Future<bool> graftExists(String repoPath, String sha) async {
   final output = await runCommandOutput(
     ['git', 'replace', '--list'],
@@ -51,7 +51,7 @@ Future<bool> graftExists(String repoPath, String sha) async {
   return output.split('\n').any((line) => line.startsWith(prefix));
 }
 
-/// Find the template commit closest to (but not after) [beforeTime].
+/// 查找最接近 [beforeTime] 但不晚于该时间的模板 commit。
 Future<String?> findTemplateCommitByTime(
   String repoPath,
   int beforeTime, {

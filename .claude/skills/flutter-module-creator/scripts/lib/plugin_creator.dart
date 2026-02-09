@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:project_workspace/project_workspace.dart';
 
-/// Create a Flutter plugin.
+/// 创建 Flutter 插件。
 Future<bool> createPlugin(
   String name,
   Directory workspaceRoot,
@@ -37,6 +37,6 @@ Future<bool> createPlugin(
 
   finalizeModule(workspaceRoot, modulePath);
 
-  logger.i('✅ Created plugin: ${modulePath.path}');
+  logger.i('✅ 已创建插件: ${modulePath.path}');
   return true;
 }

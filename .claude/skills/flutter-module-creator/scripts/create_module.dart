@@ -1,7 +1,7 @@
 #!/usr/bin/env dart
-/// Flutter/Dart Module Creator
+/// Flutter/Dart 模块创建器
 ///
-/// Usage: dart run create_module.dart --type <type> --name <name> [options]
+/// 用法: dart run create_module.dart --type <类型> --name <名称> [选项]
 
 import 'dart:io';
 
@@ -19,41 +19,41 @@ void main(List<String> arguments) async {
     ..addOption('type',
         abbr: 't',
         allowed: ['app', 'package', 'plugin', 'ffi'],
-        help: 'Type of module to create')
+        help: '要创建的模块类型')
     ..addOption('name',
-        abbr: 'n', help: 'Name of the module')
+        abbr: 'n', help: '模块名称')
     ..addFlag('console',
-        help: 'Create Dart console app instead of Flutter app (app type only)',
+        help: '创建 Dart 控制台应用而非 Flutter 应用（仅限 app 类型）',
         negatable: false)
     ..addFlag('flutter',
         help:
-            'Create Flutter package instead of Dart package (package type only)',
+            '创建 Flutter 包而非 Dart 包（仅限 package 类型）',
         negatable: false)
     ..addOption('platforms',
         abbr: 'p',
         help:
-            'Comma-separated platforms for plugin/ffi (e.g., android,ios,macos)')
+            'plugin/ffi 的逗号分隔平台列表（例如 android,ios,macos）')
     ..addOption('workspace',
         abbr: 'w',
-        help: 'Workspace root path (auto-detected if not specified)')
+        help: '工作区根目录路径（未指定则自动检测）')
     ..addFlag('no-bootstrap',
-        help: 'Skip melos bootstrap after creation', negatable: false)
+        help: '创建后跳过 melos bootstrap', negatable: false)
     ..addFlag('help',
-        abbr: 'h', help: 'Show usage information', negatable: false);
+        abbr: 'h', help: '显示帮助信息', negatable: false);
 
   ArgResults args;
   try {
     args = parser.parse(arguments);
   } catch (e) {
-    print('Error: $e\n');
+    print('错误: $e\n');
     print(parser.usage);
     exit(1);
   }
 
   if (args['help'] as bool || arguments.isEmpty) {
-    print('Flutter/Dart Module Creator\n');
+    print('Flutter/Dart 模块创建器\n');
     print(
-        'Usage: dart run create_module.dart --type <type> --name <name> [options]\n');
+        '用法: dart run create_module.dart --type <类型> --name <名称> [选项]\n');
     print(parser.usage);
     exit(arguments.isEmpty ? 1 : 0);
   }
@@ -66,11 +66,11 @@ void main(List<String> arguments) async {
 
   if (!File('${workspaceRoot.path}/pubspec.yaml').existsSync()) {
     logger.e(
-        'No pubspec.yaml found in workspace root: ${workspaceRoot.path}');
+        '工作区根目录未找到 pubspec.yaml: ${workspaceRoot.path}');
     exit(1);
   }
 
-  logger.i('Workspace root: ${workspaceRoot.path}');
+  logger.i('工作区根目录: ${workspaceRoot.path}');
 
   final platforms = args['platforms'] != null
       ? (args['platforms'] as String).split(',')
@@ -96,5 +96,5 @@ void main(List<String> arguments) async {
     await runBootstrap(workspaceRoot);
   }
 
-  logger.i("\n🎉 Module '${args['name']}' created successfully!");
+  logger.i("\n🎉 模块 '${args['name']}' 创建成功！");
 }

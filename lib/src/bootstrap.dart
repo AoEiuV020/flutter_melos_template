@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'log.dart';
 
-/// Run melos bootstrap to update dependencies.
+/// 运行 melos bootstrap 更新依赖。
 Future<bool> runBootstrap(Directory workspaceRoot) async {
-  logger.i('Running melos bootstrap...');
+  logger.i('正在运行 melos bootstrap...');
   final result = await Process.run(
     'melos',
     ['bootstrap'],
@@ -12,9 +12,9 @@ Future<bool> runBootstrap(Directory workspaceRoot) async {
     runInShell: Platform.isWindows,
   );
   if (result.exitCode != 0) {
-    logger.w('melos bootstrap failed: ${result.stderr}');
+    logger.w('melos bootstrap 失败: ${result.stderr}');
     return false;
   }
-  logger.i('✅ melos bootstrap completed');
+  logger.i('✅ melos bootstrap 完成');
   return true;
 }

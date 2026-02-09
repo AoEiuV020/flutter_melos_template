@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:project_workspace/project_workspace.dart';
 
-/// Create a Flutter app or Dart console application.
+/// 创建 Flutter 应用或 Dart 控制台应用。
 Future<bool> createApp(
   String name,
   Directory workspaceRoot,
@@ -40,6 +40,6 @@ Future<bool> createApp(
         useFlutter: true, withLicense: false);
   }
 
-  logger.i('✅ Created app: ${modulePath.path}');
+  logger.i('✅ 已创建应用: ${modulePath.path}');
   return true;
 }
