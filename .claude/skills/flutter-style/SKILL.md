@@ -9,13 +9,19 @@ description: Flutter/Dart coding style guide. **Must use before writing Flutter/
 
 ## 文件组织
 
-### 一类一文件
-- 每个类独立存放在单独文件中
+### 一类一文件（强制）
+- **每个公开类必须独立一个文件**，严禁多个类堆在同一文件中
 - 文件名使用 snake_case，与类名对应
   - `DanmakuMessage` → `danmaku_message.dart`
   - `WebSocketClient` → `websocket_client.dart`
-- 例外：枚举可与相关类合并；私有内部类可与外部类合并
+- 例外：枚举可与相关类合并；私有辅助类可与外部类合并（但超过 30 行应拆出）
 - 使用 barrel 文件（如 `models.dart`）统一导出
+
+### 文件大小限制
+- **单文件不超过 300 行**（硬限制）
+- 超过 200 行时主动考虑拆分
+- 算法/逻辑类拆分为：配置、数据结构、核心逻辑各一个文件
+- Widget 拆分为：页面、子组件、状态管理各一个文件
 
 ### 目录结构
 ```
@@ -26,6 +32,12 @@ lib/
     utils/        # 工具类
     widgets/      # UI 组件
 ```
+
+### 拆分原则
+- 优先按职责拆分，而非按大小拆分
+- 配置类（Config）单独文件
+- 数据类（Model/DTO）单独文件
+- 辅助工具函数可按功能分组到 `_helpers.dart` / `_utils.dart`
 
 ## 导入顺序
 

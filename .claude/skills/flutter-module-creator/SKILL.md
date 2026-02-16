@@ -50,3 +50,12 @@ dart run <skill_path>/scripts/create_module.dart --type plugin --name my_plugin 
 5. Updates root `workspace:` list
 6. Copies LICENSE from workspace root
 7. Runs `melos bootstrap` (unless `--no-bootstrap`)
+
+## Post-Creation Cleanup (REQUIRED)
+
+After creating a module, you MUST clean up the boilerplate code:
+
+1. Delete or replace generated placeholder source files (e.g., `lib/src/*_base.dart` with `Awesome` class)
+2. Update `example/` with actual usage code (remove `Awesome` references)
+3. Update the barrel export file (`lib/<name>.dart`) to export real files
+4. Run `melos analyze` to verify no dead code or missing references
