@@ -1,21 +1,35 @@
 # AGENTS.md
 
-## Commands
+## 仓库定位
+
+本仓库是 Flutter + Melos 项目模板。维护模板时应保持内容通用，不得加入特定正式项目的业务规则、产品配置或临时约定。
+
+## 正式项目启用要求
+
+使用本模板创建正式项目后，必须在开始业务开发前重写本文件，使其准确描述正式项目的实际情况。完成重写前，不得继续沿用本模板的代理指令开展业务开发。
+
+重写时应删除不再适用的模板说明，并根据正式项目补充以下内容：
+
+- 项目目标与业务边界
+- 目录结构与模块职责
+- 架构、编码和依赖约束
+- 开发、测试、构建及发布命令
+- 项目特有的验收要求和禁止事项
+
+## 模板维护命令
 
 ```bash
-# 依赖
-melos bs                         # bootstrap，获取所有包的依赖
+# 安装工作区依赖
+melos bs
 
-# 代码生成（freezed / riverpod_generator）
+# 运行代码生成
 melos gen
 
-# 静态分析
+# 执行静态分析
 melos analyze
 
-# 测试 → 加载 flutter-test skill
-
-# 提交前格式化
-melos precommit                  # = melos fix + melos format + melos sort
-
-# 构建 → 加载 flutter-build skill
+# 提交前修复、格式化并整理导入
+melos precommit
 ```
+
+运行测试前遵循 `flutter-test` skill，执行构建前遵循 `flutter-build` skill。
