@@ -4,7 +4,7 @@ publish_to: none
 environment:
   sdk: ^3.10.0
 
-workspace:
+workspace: []
 
 dependencies:
   path: ^1.9.1
