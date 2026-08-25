@@ -1,17 +1,18 @@
 import 'dart:io';
 
 import 'log.dart';
+import 'path_utils.dart';
 
 /// 从 git remote URL 获取 HTTPS 仓库地址。
 /// 假设服务器和 GitHub 一样的 SSH/HTTPS 对应关系，支持任意 git 服务器。
 /// 获取失败时返回 null。
 String? _getGitHubRepoUrl(String workspacePath) {
   try {
-    final result = Process.runSync(
-      'git',
-      ['config', '--get', 'remote.origin.url'],
-      workingDirectory: workspacePath,
-    );
+    final result = Process.runSync('git', [
+      'config',
+      '--get',
+      'remote.origin.url',
+    ], workingDirectory: workspacePath);
     if (result.exitCode != 0) return null;
 
     var url = result.stdout.toString().trim();
@@ -24,15 +25,13 @@ String? _getGitHubRepoUrl(String workspacePath) {
     }
 
     // HTTPS 格式: https://host/user/repo.git
-    final httpsMatch =
-        RegExp(r'(https?://.+?)(?:\.git)?$').firstMatch(url);
+    final httpsMatch = RegExp(r'(https?://.+?)(?:\.git)?$').firstMatch(url);
     if (httpsMatch != null) {
       return httpsMatch.group(1);
     }
 
     // git:// 格式: git://host/user/repo.git
-    final gitMatch =
-        RegExp(r'git://(.+?)(?:\.git)?$').firstMatch(url);
+    final gitMatch = RegExp(r'git://(.+?)(?:\.git)?$').firstMatch(url);
     if (gitMatch != null) {
       return 'https://${gitMatch.group(1)}';
     }
@@ -46,11 +45,11 @@ String? _getGitHubRepoUrl(String workspacePath) {
 /// 获取当前 git 分支名称。
 String _getGitBranch(String workspacePath) {
   try {
-    final result = Process.runSync(
-      'git',
-      ['rev-parse', '--abbrev-ref', 'HEAD'],
-      workingDirectory: workspacePath,
-    );
+    final result = Process.runSync('git', [
+      'rev-parse',
+      '--abbrev-ref',
+      'HEAD',
+    ], workingDirectory: workspacePath);
     if (result.exitCode == 0) {
       final branch = result.stdout.toString().trim();
       if (branch.isNotEmpty && branch != 'HEAD') return branch;
@@ -61,16 +60,12 @@ String _getGitBranch(String workspacePath) {
 
 /// 构建模块的 repository URL。
 /// 格式: https://github.com/user/repo/tree/branch/module/relative/path
-String? _buildModuleRepositoryUrl(
-    String workspacePath, String modulePath) {
+String? _buildModuleRepositoryUrl(String workspacePath, String modulePath) {
   final repoUrl = _getGitHubRepoUrl(workspacePath);
   if (repoUrl == null) return null;
 
   final branch = _getGitBranch(workspacePath);
-  var relativePath = modulePath.startsWith(workspacePath)
-      ? modulePath.substring(workspacePath.length + 1)
-      : modulePath;
-  relativePath = relativePath.replaceAll('\\', '/');
+  final relativePath = relativePortablePath(modulePath, from: workspacePath);
 
   return '$repoUrl/tree/$branch/$relativePath';
 }
@@ -95,16 +90,15 @@ void _addRepositoryField(String workspacePath, String modulePath) {
   }
 
   // 移除注释掉的 repository 行
-  var cleaned =
-      content.replaceAll(RegExp(r'# *repository:.*\n'), '');
+  var cleaned = content.replaceAll(RegExp(r'# *repository:.*\n'), '');
 
   // 在 description 或 version 后插入 repository
-  final insertPattern =
-      RegExp(r'((?:version|description):.*\n)');
+  final insertPattern = RegExp(r'((?:version|description):.*\n)');
   final match = insertPattern.firstMatch(cleaned);
   if (match != null) {
     final insertPos = match.end;
-    cleaned = '${cleaned.substring(0, insertPos)}repository: $repoUrl\n${cleaned.substring(insertPos)}';
+    cleaned =
+        '${cleaned.substring(0, insertPos)}repository: $repoUrl\n${cleaned.substring(insertPos)}';
     pubspecFile.writeAsStringSync(cleaned);
     logger.i('已添加 repository: $repoUrl');
   }
@@ -139,8 +133,7 @@ void updateModulePubspec(String modulePath) {
     if (!resolutionAdded && line.trimLeft().startsWith('environment:')) {
       environmentFound = true;
       logger.d('在第 ${i + 1} 行找到 environment 节');
-      final environmentIndent =
-          line.substring(0, line.indexOf('environment:'));
+      final environmentIndent = line.substring(0, line.indexOf('environment:'));
 
       var j = i + 1;
       while (j < lines.length &&
@@ -195,10 +188,11 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
     if (inWorkspaceSection) {
       final trimmed = line.trim();
       if (trimmed.startsWith('- ')) {
-        var path = trimmed.substring(2).trim();
-        path = path.replaceAll('\\', '/');
-        workspaceSet.add(path);
-        logger.d('找到 workspace 条目: $path (已规范化)');
+        final workspacePath = normalizePortablePath(
+          trimmed.substring(2).trim(),
+        );
+        workspaceSet.add(workspacePath);
+        logger.d('找到 workspace 条目: $workspacePath (已规范化)');
       } else if (trimmed.isNotEmpty && !line.startsWith('  ')) {
         inWorkspaceSection = false;
       }
@@ -206,10 +200,7 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
   }
 
   if (newModulePath != null) {
-    var relativePath = newModulePath.startsWith(rootPath)
-        ? newModulePath.substring(rootPath.length + 1)
-        : newModulePath;
-    relativePath = relativePath.replaceAll('\\', '/');
+    final relativePath = relativePortablePath(newModulePath, from: rootPath);
     if (workspaceSet.add(relativePath)) {
       logger.d('向 workspace 添加新模块: $relativePath');
     } else {
@@ -254,7 +245,9 @@ void updateRootPubspec(String rootPath, String? newModulePath) {
     if (trimmedLine.startsWith('environment:')) {
       environmentFound = true;
       environmentIndent = line.substring(0, line.indexOf('environment:'));
-      logger.d('在第 ${i + 1} 行找到 environment 节，缩进: "${environmentIndent.replaceAll(' ', '·')}"');
+      logger.d(
+        '在第 ${i + 1} 行找到 environment 节，缩进: "${environmentIndent.replaceAll(' ', '·')}"',
+      );
       updatedLines.add(line);
 
       var j = i + 1;

@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+
 /// 为 Melos 工作区中的 Flutter 应用创建 GitHub Actions 工作流。
 ///
 /// 用法:
@@ -22,7 +23,7 @@ File createWorkflow(
   required Directory scriptDir,
 }) {
   // 规范化应用路径
-  appPath = appPath.replaceAll(RegExp(r'/+$'), '');
+  appPath = normalizePortablePath(appPath);
   if (!appPath.startsWith('apps/') && !appPath.startsWith('packages/')) {
     // 假设在 apps/ 下
     if (!appPath.contains('/')) {
@@ -76,25 +77,10 @@ File createWorkflow(
 }
 
 void main(List<String> arguments) {
-
   final parser = ArgParser()
-    ..addOption(
-      'name',
-      abbr: 'n',
-      help: '工作流文件名（默认: main）',
-      defaultsTo: 'main',
-    )
-    ..addOption(
-      'workspace',
-      abbr: 'w',
-      help: '工作区根目录路径（未指定则自动检测）',
-    )
-    ..addFlag(
-      'help',
-      abbr: 'h',
-      help: '显示帮助信息',
-      negatable: false,
-    );
+    ..addOption('name', abbr: 'n', help: '工作流文件名（默认: main）', defaultsTo: 'main')
+    ..addOption('workspace', abbr: 'w', help: '工作区根目录路径（未指定则自动检测）')
+    ..addFlag('help', abbr: 'h', help: '显示帮助信息', negatable: false);
 
   ArgResults args;
   List<String> rest;
