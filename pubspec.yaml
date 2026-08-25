@@ -2,18 +2,18 @@ name: project_workspace
 publish_to: none
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.10.0
 
 workspace:
 
 dependencies:
-  path: ^1.9.0
+  path: ^1.9.1
   dotenv: ^4.2.0
-  logger: ^2.6.2
-  args: ^2.5.0
+  logger: ^2.7.0
+  args: ^2.7.0
 
 dev_dependencies:
-  melos: ^7.3.0
+  melos: ^8.3.0
   lints: ^6.1.0
 
 melos:
@@ -29,15 +29,15 @@ melos:
     analyze:
       exec: dart analyze .
     fix:
-      run: dart fix --apply .
       exec:
+        command: dart fix --apply .
         concurrency: 1
     sort:
       exec: dart pub global run import_sorter --no-comments
     precommit: melos fix && melos format && melos sort
     test:
-      run: flutter test --no-pub --coverage
       exec:
+        command: flutter test --no-pub --coverage
         concurrency: 1
       packageFilters:
         dirExists: test
