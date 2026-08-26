@@ -21,3 +21,4 @@ docs/**/*.g.dart
 *.js.map
 # flutter devtools 配置文件
 devtools_options.yaml
+tmp/
